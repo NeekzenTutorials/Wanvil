@@ -1,43 +1,20 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+// src/App.tsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Home from './pages/home'
+import NewProject from './pages/NewProject'
+import ProjectDashboard from './pages/ProjectDashboard'
+import OpenProject from './pages/OpenProject'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      <div className="bg-red-500 text-white p-8">
-        Si vous voyez ce fond rouge, Tailwind fonctionne !
-      </div>
-      <div className="flex space-x-6 mb-8">
-        <a href="https://vite.dev" target="_blank" rel="noopener noreferrer">
-          <img src={viteLogo} className="h-16 w-16 transform hover:scale-110 transition" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noopener noreferrer">
-          <img src={reactLogo} className="h-16 w-16 transform hover:scale-110 transition" alt="React logo" />
-        </a>
-      </div>
-
-      <h1 className="text-4xl font-bold text-blue-600 mb-6">Vite + React + Tailwind CSS</h1>
-
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6 w-full max-w-sm text-center">
-        <button
-          onClick={() => setCount(count + 1)}
-          className="px-6 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition"
-        >
-          count is {count}
-        </button>
-        <p className="mt-4 text-gray-600">
-          Edit <code className="bg-gray-100 px-1 rounded">src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-
-      <p className="text-gray-500">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/project/new" element={<NewProject />} />
+        <Route path="/project/open" element={<OpenProject />} />
+        <Route path="/project/:projectId/*" element={<ProjectDashboard />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
