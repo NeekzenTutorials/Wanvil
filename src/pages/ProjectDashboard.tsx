@@ -1,29 +1,49 @@
 import type { FC } from 'react'
-import { useState } from 'react'
+import type { Project } from '../types/project'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import Hierarchy from '../components/Hierarchy/Hierachy'
-import Editor from '../components/Editor/Editor'
+import { apiGet } from '../utils/fetcher'
+import { ProjectHeader } from '../components/Project/Header'
+import { ProjectMain } from '../components/Project/Main'
+import { ProjectSidebar } from '../components/Project/Sidebar'
+import type { SidebarSections } from '../types/sidebarSections'
+import type { SelectedNode } from '../types/selectedNodes'
 
+/**
+ * Dashboard view for a single project.
+ * Shows:
+ *  • Global header with a back button
+ *  • Left navigation rail (future‑proofed for additional tabs)
+ *  • Hierarchy tree and rich text editor
+ */
 const ProjectDashboard: FC = () => {
   const { projectId } = useParams()
-  const [selectedNode, setSelectedNode] = useState<string | null>(null)
+  const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null)
+  const [project, setProject] = useState<Project | null>(null)
+  const [activeSection, setActiveSection] = useState<SidebarSections>('redaction')
+  const [refreshTree, setRefreshTree] = useState<() => void>(() => {});
+
+  // Load project metadata
+  useEffect(() => {
+    if (!projectId) return
+    apiGet<Project>(`projects/${projectId}`)
+      .then(setProject)
+      .catch((err) => console.error('Failed to load project', err))
+  }, [projectId])
 
   return (
-    <div className="min-h-screen flex bg-gray-100">
-      {/* Sidebar for hierarchy */}
-      <aside className="w-64 bg-white shadow-lg p-4">
-        <h3 className="text-lg font-semibold mb-4">Structure</h3>
-        <Hierarchy onSelect={setSelectedNode} />
-      </aside>
+    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
+      <ProjectHeader projectName={project?.name ?? projectId} />
 
-      {/* Main Editor area */}
-      <main className="flex-grow p-6">
-        {selectedNode ? (
-          <Editor nodeId={selectedNode} />
-        ) : (
-          <div className="text-gray-500">Choisissez un chapitre ou tome à éditer</div>
-        )}
-      </main>
+      <div className="flex grow overflow-hidden">
+        <ProjectSidebar
+          active={activeSection}
+          setActive={setActiveSection}
+          onSelectNode={setSelectedNode}
+          onRefreshTree={setRefreshTree}
+        />
+        <ProjectMain selected={selectedNode} refreshTree={refreshTree} />
+      </div>
     </div>
   )
 }

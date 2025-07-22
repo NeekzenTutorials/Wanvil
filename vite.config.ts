@@ -8,4 +8,7 @@ export default defineConfig({
     react(),
     tailwind(),   // ← c’est lui qui injecte Tailwind
   ],
+  server: {
+    port: 5006
+  },
 })
