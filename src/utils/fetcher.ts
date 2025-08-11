@@ -1,4 +1,4 @@
-const API_BASE = 'http://127.0.0.1:5005/api'
+const API_BASE = 'http://10.1.106.16:5006/api'
 
 /**
  * Generic fetch helper for backend API.

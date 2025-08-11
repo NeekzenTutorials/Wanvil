@@ -9,6 +9,15 @@ export default defineConfig({
     tailwind(),   // ← c’est lui qui injecte Tailwind
   ],
   server: {
-    port: 5006
+    port: 5006,
+    host: true,
+    strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5005', // ton Flask
+        changeOrigin: true,
+        // pas de rewrite qui retirerait /api
+      }
+    }
   },
 })

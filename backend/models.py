@@ -89,6 +89,7 @@ class Chapter(db.Model):
     tome_id = db.Column(db.String, db.ForeignKey('tomes.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    position = db.Column(db.Integer, nullable=True)
     
 
     tome = db.relationship('Tome', back_populates='chapters')
@@ -99,6 +100,7 @@ class Chapter(db.Model):
             'title': self.title,
             'content': self.content,
             'tomeId': self.tome_id,
+            'position': self.position,
             'createdAt': self.created_at.isoformat(),
             'updatedAt': self.updated_at.isoformat() if self.updated_at else None
         }
