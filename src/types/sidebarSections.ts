@@ -1,7 +1,10 @@
 export type SidebarSections =
   | 'redaction'
-  | 'lore-characters'
+  | 'characters'
   | 'lore-places'
   | 'lore-items'
   | 'chronology'
   | 'settings'
+
+// sous-vue pour Personnages
+export type CharactersSubView = 'list' | 'template' | 'tags'

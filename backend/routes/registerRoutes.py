@@ -4,6 +4,7 @@ from .hierarchy import hierarchy_bp
 from .sagas import sagas_bp
 from .tomes import tomes_bp
 from .collections import collections_bp
+from .characters import characters_bp
 
 def register_routes(app: Flask):
     """Attach all Blueprint routes to the Flask app"""
@@ -12,3 +13,4 @@ def register_routes(app: Flask):
     app.register_blueprint(sagas_bp)
     app.register_blueprint(tomes_bp)
     app.register_blueprint(collections_bp)
+    app.register_blueprint(characters_bp)

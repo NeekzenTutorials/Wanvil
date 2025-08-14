@@ -1,13 +1,57 @@
 import type { FC } from 'react'
+import type { SidebarSections, CharactersSubView } from '../../types/sidebarSections'
 import type { SelectedNode } from '../../types/selectedNodes'
 import { NodeDetails } from '../common/NodeDetails'
+import { CharactersPage } from '../characters/CharactersPage'
+import { CharactersTemplatePage } from '../characters/CharactersTemplatePage'
+import { DefaultPage } from '../common/DefaultPage'
+import { CharacterTagsManagerPage } from '../characters/CharacterTagsManagerPage'
 
-export const ProjectMain: FC<{ selected: SelectedNode | null, refreshTree: () => void }> = ({ selected, refreshTree }) => (
-  <main className="flex-1 p-8 overflow-y-auto">
-    {selected ? (
-      <NodeDetails selected={selected} onRefreshHierarchy={refreshTree}/>
-    ) : (
-      <p className="text-gray-500">Sélectionnez une collection, saga ou tome</p>
-    )}
-  </main>
-);
+interface Props {
+  active: SidebarSections
+  charactersView: CharactersSubView
+  selected: SelectedNode | null
+  refreshTree: () => void
+  projectId: string
+}
+
+export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refreshTree, projectId }) => {
+  if (active === 'redaction') {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto">
+        {selected ? (
+          <NodeDetails selected={selected} onRefreshHierarchy={refreshTree}/>
+        ) : (
+          <DefaultPage
+            title="Rédaction"
+            description="Sélectionnez une collection, une saga ou un tome dans la colonne de gauche."
+          />
+        )}
+      </main>
+    )
+  }
+
+  if (active === 'characters') {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto">
+        {charactersView === 'list' ? (
+          <CharactersPage projectId={projectId} />
+        ) : charactersView === 'template' ? (
+          <CharactersTemplatePage projectId={projectId} />
+        ) : (
+          <CharacterTagsManagerPage projectId={projectId} />  // ← NEW
+        )}
+      </main>
+    )
+  }
+
+  // Autres onglets non implémentés
+  return (
+    <main className="flex-1 p-8 overflow-y-auto">
+      <DefaultPage
+        title="Bientôt disponible"
+        description="Cette section n'est pas encore implémentée. Revenez bientôt !"
+      />
+    </main>
+  )
+}

@@ -6,22 +6,18 @@ import { apiGet } from '../utils/fetcher'
 import { ProjectHeader } from '../components/Project/Header'
 import { ProjectMain } from '../components/Project/Main'
 import { ProjectSidebar } from '../components/Project/Sidebar'
-import type { SidebarSections } from '../types/sidebarSections'
+import type { SidebarSections, CharactersSubView } from '../types/sidebarSections'
 import type { SelectedNode } from '../types/selectedNodes'
 
-/**
- * Dashboard view for a single project.
- * Shows:
- *  • Global header with a back button
- *  • Left navigation rail (future‑proofed for additional tabs)
- *  • Hierarchy tree and rich text editor
- */
 const ProjectDashboard: FC = () => {
   const { projectId } = useParams()
-  const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null)
   const [project, setProject] = useState<Project | null>(null)
+
   const [activeSection, setActiveSection] = useState<SidebarSections>('redaction')
-  const [refreshTree, setRefreshTree] = useState<() => void>(() => {});
+  const [charactersView, setCharactersView] = useState<CharactersSubView>('list')
+
+  const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null)
+  const [refreshTree, setRefreshTree] = useState<() => void>(() => {})
 
   // Load project metadata
   useEffect(() => {
@@ -33,16 +29,29 @@ const ProjectDashboard: FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
-      <ProjectHeader projectName={project?.name ?? projectId} />
+      <ProjectHeader projectName={project?.name ?? projectId ?? ''} />
 
       <div className="flex grow overflow-hidden">
         <ProjectSidebar
           active={activeSection}
           setActive={setActiveSection}
-          onSelectNode={setSelectedNode}
-          onRefreshTree={setRefreshTree}
+          charactersView={charactersView}
+          setCharactersView={setCharactersView}
+          onSelectNode={(node) => {
+            setSelectedNode(node)
+            // si on était ailleurs, basculer sur "Rédaction" pour voir NodeDetails
+            setActiveSection('redaction')
+          }}
+          onRefreshTree={setRefreshTree} // Hierarchy appellera onRefreshReady(fn) -> on stocke fn ici
         />
-        <ProjectMain selected={selectedNode} refreshTree={refreshTree} />
+
+        <ProjectMain
+          active={activeSection}
+          charactersView={charactersView}
+          selected={selectedNode}
+          refreshTree={refreshTree}
+          projectId={projectId || ''}
+        />
       </div>
     </div>
   )

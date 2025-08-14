@@ -43,3 +43,8 @@ def delete_collection(cid):
     db.session.delete(col)
     db.session.commit()
     return '', 204
+
+@collections_bp.get('/projects/<project_id>/collections')
+def list_collections_for_project(project_id):
+    cols = Collection.query.filter_by(project_id=project_id).order_by(Collection.created_at.asc()).all()
+    return jsonify([c.to_dict() for c in cols]), 200
