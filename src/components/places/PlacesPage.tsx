@@ -1,103 +1,112 @@
+// src/components/places/PlacesPage.tsx
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { apiGet, apiPost, apiDelete } from '../../utils/fetcher'
-import { Plus, Trash2 } from 'lucide-react'
-import { CharacterForm } from './CharacterForm'
+import { Plus, Trash2, MapPin } from 'lucide-react'
 import TagFilterPopover from '../common/TagFilterPopover'
+import { PlacesForm } from './PlacesForm'
 
 type Collection = { id: string; name: string }
 type Tag = { id: string; name: string; color?: string; note?: string }
 
-export function CharactersPage({ projectId }: { projectId: string }) {
+type Card = {
+  id: string
+  name: string
+  location?: string | null
+  coverUrl?: string | null
+  tags: Tag[]
+}
+
+export function PlacesPage({ projectId }: { projectId: string }) {
   const [collections, setCollections] = useState<Collection[]>([])
   const [collectionId, setCollectionId] = useState<string | null>(null)
 
   const [tags, setTags] = useState<Tag[]>([])
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [q, setQ] = useState('')
-  const [cards, setCards] = useState<any[]>([])
+  const [cards, setCards] = useState<Card[]>([])
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [matchMode, setMatchMode] = useState<'any'|'all'>('any')
 
-  // NEW: regroupement par annotation (ex: "village")
+  // Regroupement par annotation de tag (ex: "région")
   const noteOptions = useMemo(
     () => Array.from(new Set(tags.map(t => t.note).filter(Boolean))) as string[],
     [tags]
   )
-  const [groupNote, setGroupNote] = useState<string>('') // '' = pas de regroupement
+  const [groupNote, setGroupNote] = useState<string>('')
 
-  // Load collections
   useEffect(() => {
-    apiGet<Collection[]>(`projects/${projectId}/collections`).then(setCollections)
+    apiGet<Collection[]>(`projects/${projectId}/collections`).then((cols) => {
+        setCollections(cols)
+        if (cols.length && !collectionId) setCollectionId(cols[0].id)
+    })
   }, [projectId])
 
-  // Load tags + characters (selon filtres)
   useEffect(() => {
     if (!collectionId) return
-    apiGet<Tag[]>(`collections/${collectionId}/tags?scope=character`).then(setTags)
-    fetchCharacters()
+    apiGet<Tag[]>(`collections/${collectionId}/tags?scope=place`).then(setTags)
+    fetchPlaces()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collectionId, selectedTagIds, q, matchMode])
 
-  const fetchCharacters = async () => {
+  const fetchPlaces = async () => {
     if (!collectionId) return
     const qs = new URLSearchParams()
     if (selectedTagIds.length) qs.set('tags', selectedTagIds.join(','))
     if (q.trim()) qs.set('query', q.trim())
     qs.set('match', matchMode)
-    const data = await apiGet<any[]>(`collections/${collectionId}/characters?${qs.toString()}`)
+    const data = await apiGet<Card[]>(`collections/${collectionId}/places?${qs.toString()}`)
     setCards(data)
   }
 
-  const createCharacter = async () => {
-    if (!collectionId) return
-    const c = await apiPost<any>(`collections/${collectionId}/characters`, {
-      firstname: 'Nouveau',
-      lastname: 'Personnage',
-      content: {}
+  const createPlace = async () => {
+    if (!collectionId) { alert('Choisissez une collection'); return }
+    try {
+    const p = await apiPost<any>(`collections/${collectionId}/places`, {
+        name: 'Nouveau lieu',
+        location: '',
+        description: '',
+        images: [],
+        content: { customFields: [] }
     })
-    setEditingId(c.id)
-    fetchCharacters()
+    setEditingId(p.id)
+    fetchPlaces()
+    } catch (e) {
+    console.error(e)
+    alert('La création du lieu a échoué (voir console).')
+    }
   }
 
-  const deleteCharacter = async (id: string) => {
+  const deletePlace = async (id: string) => {
     const card = cards.find(c => c.id === id)
-    const label = card ? `${card.firstname} ${card.lastname}` : 'ce personnage'
+    const label = card ? `${card.name}` : 'ce lieu'
     if (!confirm(`Supprimer définitivement ${label} ?`)) return
 
     setDeletingId(id)
     try {
-      await apiDelete(`characters/${id}`)
+      await apiDelete(`places/${id}`)
       if (editingId === id) setEditingId(null)
-      await fetchCharacters()
+      await fetchPlaces()
     } finally {
       setDeletingId(null)
     }
   }
 
-  function renderCard(card: any): ReactNode {
+  function renderCard(card: Card): ReactNode {
     return (
       <article
         key={card.id}
         className="relative group border rounded-xl bg-white p-4 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition"
         onClick={() => setEditingId(card.id)}
       >
-        {/* Delete button */}
         <button
-          onClick={(e) => { e.stopPropagation(); deleteCharacter(card.id) }}
+          onClick={(e) => { e.stopPropagation(); deletePlace(card.id) }}
           disabled={deletingId === card.id}
-          title="Supprimer ce personnage"
-          aria-label="Supprimer ce personnage"
-          className={[
-            "absolute top-2 right-2 p-1.5 rounded-full border text-red-600 bg-white/95",
-            "hover:bg-red-50 hover:border-red-300 shadow-sm",
-            "transition-opacity",
-            "opacity-100",
-            "sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100",
-            "disabled:opacity-50"
-          ].join(" ")}
+          title="Supprimer ce lieu"
+          aria-label="Supprimer ce lieu"
+          className="absolute top-2 right-2 p-1.5 rounded-full border text-red-600 bg-white/95 hover:bg-red-50 hover:border-red-300 shadow-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 disabled:opacity-50"
         >
           {deletingId === card.id ? (
             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -110,14 +119,17 @@ export function CharactersPage({ projectId }: { projectId: string }) {
         </button>
 
         <img
-          src={card.avatarUrl || '/placeholder-avatar.svg'}
+          src={card.coverUrl || '/placeholder-location.svg'}
           className="w-12 h-12 rounded object-cover"
           alt=""
         />
-        <div className="flex-1">
-          <div className="font-medium">{card.firstname} {card.lastname}</div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium truncate">{card.name}</div>
+          <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 truncate">
+            <MapPin className="w-3 h-3" /> {card.location || '—'}
+          </div>
           <div className="flex gap-1 flex-wrap mt-1">
-            {(card.tags || []).map((tag: any) => (
+            {(card.tags || []).map((tag) => (
               <span
                 key={tag.id}
                 className="text-xs px-2 py-0.5 rounded border"
@@ -133,12 +145,11 @@ export function CharactersPage({ projectId }: { projectId: string }) {
     )
   }
 
-  // --- Calculs pour regroupement par annotation ----------------------------
+  // --- regroupements par annotation
   const tagsForCurrentNote = useMemo(
     () => (groupNote ? tags.filter(t => (t.note || '') === groupNote) : []),
     [tags, groupNote]
   )
-
   const cardsWithoutCurrentNote = useMemo(() => {
     if (!groupNote) return []
     const ids = new Set(tagsForCurrentNote.map(t => t.id))
@@ -148,12 +159,9 @@ export function CharactersPage({ projectId }: { projectId: string }) {
   const sectionsForCurrentNote = useMemo(() => {
     if (!groupNote) return []
     return tagsForCurrentNote
-      .slice() // copy
+      .slice()
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map(tag => {
-        const arr = cards.filter(c => (c.tags || []).some((x: any) => x.id === tag.id))
-        return { tag, cards: arr }
-      })
+      .map(tag => ({ tag, cards: cards.filter(c => (c.tags || []).some((x: any) => x.id === tag.id)) }))
       .filter(sec => sec.cards.length > 0)
   }, [cards, tagsForCurrentNote, groupNote])
 
@@ -177,7 +185,6 @@ export function CharactersPage({ projectId }: { projectId: string }) {
           onChange={e => setQ(e.target.value)}
         />
 
-        {/* Sélecteur de tags (compact) */}
         <TagFilterPopover
           tags={tags}
           noteOptions={noteOptions}
@@ -185,7 +192,6 @@ export function CharactersPage({ projectId }: { projectId: string }) {
           onChange={setSelectedTagIds}
         />
 
-        {/* Correspondance (OR/AND) */}
         <div className="flex items-center gap-2">
           <label className="text-sm text-gray-700">Correspondance</label>
           <select
@@ -198,7 +204,6 @@ export function CharactersPage({ projectId }: { projectId: string }) {
           </select>
         </div>
 
-        {/* Regroupement par annotation */}
         <div className="ml-auto flex items-center gap-2">
           <label className="text-sm text-gray-700">Regrouper par annotation</label>
           <select
@@ -210,22 +215,19 @@ export function CharactersPage({ projectId }: { projectId: string }) {
             {noteOptions.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
 
-          <button onClick={createCharacter} className="btn-primary inline-flex items-center gap-1">
-            <Plus className="w-4 h-4" /> Nouveau personnage
+          <button onClick={createPlace} className="btn-primary inline-flex items-center gap-1">
+            <Plus className="w-4 h-4" /> Nouveau lieu
           </button>
         </div>
       </div>
 
       {/* Contenu */}
       {groupNote === '' ? (
-        // Grille simple
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {cards.map(renderCard)}
         </div>
       ) : (
-        // Regroupé par annotation (ex: "village")
         <div className="space-y-10">
-          {/* Section "Sans <annotation>" */}
           {cardsWithoutCurrentNote.length > 0 && (
             <section>
               <header className="mb-3">
@@ -240,7 +242,6 @@ export function CharactersPage({ projectId }: { projectId: string }) {
             </section>
           )}
 
-          {/* Une section par tag dont note === groupNote */}
           {sectionsForCurrentNote.length === 0 && (
             <p className="text-sm text-gray-500">Aucun tag avec l’annotation « {groupNote} ».</p>
           )}
@@ -248,13 +249,8 @@ export function CharactersPage({ projectId }: { projectId: string }) {
           {sectionsForCurrentNote.map(({ tag, cards: arr }) => (
             <section key={tag.id}>
               <header className="mb-3 flex items-center gap-2">
-                <div
-                  className="inline-block h-2 w-2 rounded-full"
-                  style={{ backgroundColor: tag.color || '#e5e7eb' }}
-                />
-                <h3 className="text-sm font-semibold" style={{ color: tag.color || undefined }}>
-                  {tag.name}
-                </h3>
+                <div className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: tag.color || '#e5e7eb' }} />
+                <h3 className="text-sm font-semibold" style={{ color: tag.color || undefined }}>{tag.name}</h3>
                 <span className="text-xs text-gray-400">({arr.length})</span>
               </header>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -265,12 +261,11 @@ export function CharactersPage({ projectId }: { projectId: string }) {
         </div>
       )}
 
-      {/* Drawer / panneau d’édition */}
       {editingId && (
-        <CharacterForm
-          characterId={editingId}
+        <PlacesForm
+          placeId={editingId}
           collectionId={collectionId!}
-          onClose={() => { setEditingId(null); fetchCharacters() }}
+          onClose={() => { setEditingId(null); fetchPlaces() }}
         />
       )}
     </div>

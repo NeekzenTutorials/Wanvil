@@ -22,7 +22,7 @@ export function CharacterForm({ characterId, collectionId, onClose }:{
     // charge perso + tags de la collection en parallèle
     Promise.all([
       apiGet<any>(`characters/${characterId}`),
-      apiGet<Tag[]>(`collections/${collectionId}/tags`)
+      apiGet<Tag[]>(`collections/${collectionId}/tags?scope=character`)
     ]).then(([c, tags]) => {
       setData(c)
       setAllTags(tags)

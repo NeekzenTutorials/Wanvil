@@ -30,17 +30,10 @@ class Collection(db.Model):
 
     project = db.relationship('Project', back_populates='collections')
     sagas = db.relationship('Saga', back_populates='collection', cascade='all, delete-orphan')
-    characters = db.relationship(
-        'Character',
-        back_populates='collection',
-        cascade='all, delete-orphan'
-    )
-
-    character_templates = db.relationship(
-        'CharacterTemplate',
-        back_populates='collection',
-        cascade='all, delete-orphan'
-    )
+    characters = db.relationship('Character', back_populates='collection', cascade='all, delete-orphan')
+    character_templates = db.relationship('CharacterTemplate', back_populates='collection', cascade='all, delete-orphan')
+    places = db.relationship('Place', back_populates='collection', cascade='all, delete-orphan')
+    items = db.relationship('Item', back_populates='collection', cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -167,25 +160,96 @@ class CharacterTemplate(db.Model):
             'updatedAt': self.updated_at.isoformat() if self.updated_at else None
         }
 
-# Tags (facultatif mais recommandé)
 class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
     collection_id = db.Column(db.String, db.ForeignKey('collections.id'), nullable=False)
     name  = db.Column(db.String(100), nullable=False)
-    color = db.Column(db.String(32), nullable=True)   # ex: #E11D48
-    note  = db.Column(db.Text, nullable=True)         # ← NEW
+    color = db.Column(db.String(32), nullable=True)
+    note  = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    scope = db.Column(db.String(32), nullable=False, default='character')
 
     characters = db.relationship('Character', secondary='character_tags', back_populates='tags')
+    places = db.relationship('Place', secondary='place_tags', back_populates='tags')
+    items = db.relationship('Item', secondary='item_tags', back_populates='tags')
 
     def to_dict(self):
-        return {
-            'id': self.id, 'name': self.name, 'color': self.color,
-            'note': self.note, 'collectionId': self.collection_id
-        }
+        return {'id': self.id, 'name': self.name, 'color': self.color, 'note': self.note,
+                'collectionId': self.collection_id, 'scope': self.scope}
 
 class CharacterTag(db.Model):
     __tablename__ = 'character_tags'
     character_id = db.Column(db.String, db.ForeignKey('characters.id'), primary_key=True)
     tag_id       = db.Column(db.String, db.ForeignKey('tags.id'), primary_key=True)
+
+class Place(db.Model):
+    __tablename__ = 'places'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(200), nullable=False)
+    location = db.Column(db.String(300), nullable=True)          # ex: "Paris", "Forêt de Lyr", coords libres
+    description = db.Column(db.Text, nullable=True)               # richtext HTML depuis TinyMCE
+    images = db.Column(db.JSON, nullable=True, default=list)      # [urls]
+    content = db.Column(db.JSON, nullable=True, default=dict)     # champs custom *propres au lieu*
+
+    collection_id = db.Column(db.String, db.ForeignKey('collections.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    collection = db.relationship('Collection', back_populates='places')
+    tags = db.relationship('Tag', secondary='place_tags', back_populates='places')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'location': self.location,
+            'description': self.description,
+            'images': self.images or [],
+            'collectionId': self.collection_id,
+            'content': self.content or {},
+            'tags': [t.to_dict() for t in self.tags],
+            'createdAt': self.created_at.isoformat(),
+            'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+class PlaceTag(db.Model):
+    __tablename__ = 'place_tags'
+    place_id = db.Column(db.String, db.ForeignKey('places.id'), primary_key=True)
+    tag_id   = db.Column(db.String, db.ForeignKey('tags.id'), primary_key=True)
+
+class Item(db.Model):
+    __tablename__ = 'items'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(200), nullable=False)
+    category = db.Column(db.String(150), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    images = db.Column(db.JSON, nullable=True, default=list)
+    content = db.Column(db.JSON, nullable=True, default=dict)
+
+    collection_id = db.Column(db.String, db.ForeignKey('collections.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    collection = db.relationship('Collection', back_populates='items')
+    tags = db.relationship('Tag', secondary='item_tags', back_populates='items')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'category': self.category,
+            'description': self.description,
+            'images': self.images or [],
+            'collectionId': self.collection_id,
+            'content': self.content or {},
+            'tags': [t.to_dict() for t in self.tags],
+            'createdAt': self.created_at.isoformat(),
+            'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class ItemTag(db.Model):
+    __tablename__ = 'item_tags'
+    item_id = db.Column(db.String, db.ForeignKey('items.id'), primary_key=True)
+    tag_id  = db.Column(db.String, db.ForeignKey('tags.id'), primary_key=True)

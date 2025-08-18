@@ -48,13 +48,13 @@ export const ProjectSidebar: FC<ProjectSidebarProps> = ({
         <SidebarButton
           icon={<ListTree className="w-4 h-4" />}
           label="Lieux"
-          active={active === 'lore-places'}
+          active={active === 'lore-places' || active === 'lore-places-tags'}
           onClick={() => setActive('lore-places')}
         />
         <SidebarButton
           icon={<Book className="w-4 h-4" />}
           label="Objets"
-          active={active === 'lore-items'}
+          active={active === 'lore-items' || active === 'lore-items-tags'}
           onClick={() => setActive('lore-items')}
         />
         <SidebarButton
@@ -124,7 +124,74 @@ export const ProjectSidebar: FC<ProjectSidebarProps> = ({
           </div>
         )}
 
-        {active !== 'redaction' && active !== 'characters' && (
+        {(active === 'lore-places' || active === 'lore-places-tags') && (
+          <div className="px-2">
+            {/* Sous-menu Lieux : aligné sur Personnages */}
+            <ul className="space-y-1">
+              <li>
+                <button
+                  type="button"
+                  className={subItemClass(active === 'lore-places')}
+                  onClick={() => setActive('lore-places')}
+                  aria-current={active === 'lore-places' ? 'page' : undefined}
+                >
+                  <ListTree className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Liste</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={subItemClass(active === 'lore-places-tags')}
+                  onClick={() => setActive('lore-places-tags')}
+                  aria-current={active === 'lore-places-tags' ? 'page' : undefined}
+                >
+                  <TagIcon className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Tags</span>
+                </button>
+              </li>
+            </ul>
+
+            <p className="text-xs text-gray-500 mt-3">
+              Astuce : utilisez les annotations de tag (ex. « région ») pour regrouper l’affichage.
+              Les tags des lieux sont propres au scope <code>place</code>.
+            </p>
+          </div>
+        )}
+
+        {(active === 'lore-items' || active === 'lore-items-tags') && (
+          <div className="px-2">
+            <ul className="space-y-1">
+              <li>
+                <button
+                  type="button"
+                  className={subItemClass(active === 'lore-items')}
+                  onClick={() => setActive('lore-items')}
+                  aria-current={active === 'lore-items' ? 'page' : undefined}
+                >
+                  <Book className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Liste</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={subItemClass(active === 'lore-items-tags')}
+                  onClick={() => setActive('lore-items-tags')}
+                  aria-current={active === 'lore-items-tags' ? 'page' : undefined}
+                >
+                  <TagIcon className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Tags</span>
+                </button>
+              </li>
+            </ul>
+            <p className="text-xs text-gray-500 mt-3">
+              Les tags des objets sont isolés (scope <code>item</code>).
+            </p>
+          </div>
+        )}
+
+        {active !== 'redaction' && active !== 'characters' && active !== 'lore-places' && active !== 'lore-places-tags' && active !== 'lore-items' && active !== 'lore-items-tags' && (
           <p className="text-sm text-gray-500 px-2">Sélectionnez un élément du menu.</p>
         )}
       </div>

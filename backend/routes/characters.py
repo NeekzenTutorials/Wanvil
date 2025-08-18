@@ -71,7 +71,11 @@ def put_character_template(collection_id):
 @characters_bp.get("/collections/<collection_id>/tags")
 def list_tags(collection_id):
     Collection.query.get_or_404(collection_id)
-    tags = Tag.query.filter_by(collection_id=collection_id).order_by(Tag.name.asc()).all()
+    scope = (request.args.get("scope") or "").strip()
+    q = Tag.query.filter_by(collection_id=collection_id)
+    if scope in ("character", "place", "item"):
+        q = q.filter(Tag.scope == scope)
+    tags = q.order_by(Tag.name.asc()).all()
     return jsonify([t.to_dict() for t in tags]), 200
 
 @characters_bp.post("/collections/<collection_id>/tags")
@@ -80,9 +84,12 @@ def create_tag(collection_id):
     data = request.get_json() or {}
     name = (data.get("name") or "").strip()
     color = (data.get("color") or "").strip() or None
+    scope = (data.get("scope") or "").strip()
     if not name:
         return {"error": "name required"}, 400
-    t = Tag(name=name, color=color, collection_id=collection_id)
+    if scope not in ("character", "place", "item"):
+        return {"error": "scope 'character' or 'place' required"}, 400
+    t = Tag(name=name, color=color, collection_id=collection_id, scope=scope)
     if "note" in data:
         t.note = (data["note"] or None)
     db.session.add(t)
@@ -103,6 +110,11 @@ def update_tag(tag_id):
         t.color = c
     if "note" in data:
         t.note = (data["note"] or None)
+    if "scope" in data:
+        s = (data["scope"] or "").strip()
+        if s not in ("character", "place", "item"):
+            return {"error": "invalid scope"}, 400
+        t.scope = s
     db.session.commit()
     return jsonify(t.to_dict()), 200
 
@@ -217,7 +229,9 @@ def update_character(character_id):
     # set complet des tags si fourni
     if "tagIds" in data and isinstance(data["tagIds"], list):
         # on sécurise par collection
-        tags = Tag.query.filter(Tag.collection_id == c.collection_id, Tag.id.in_(data["tagIds"])).all()
+        tags = Tag.query.filter(Tag.collection_id == c.collection_id,
+                    Tag.scope == 'character',
+                    Tag.id.in_(data["tagIds"])).all()
         c.tags = tags
 
     db.session.commit()
@@ -230,7 +244,9 @@ def set_character_tags(character_id):
     tag_ids = data.get("tagIds")
     if not isinstance(tag_ids, list):
         return {"error": "tagIds list required"}, 400
-    tags = Tag.query.filter(Tag.collection_id == c.collection_id, Tag.id.in_(tag_ids)).all()
+    tags = Tag.query.filter(Tag.collection_id == c.collection_id,
+                    Tag.scope == 'character',
+                    Tag.id.in_(data["tagIds"])).all()
     c.tags = tags
     db.session.commit()
     return jsonify({"id": c.id, "tagIds": [t.id for t in c.tags]}), 200

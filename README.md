@@ -113,7 +113,7 @@
 ### Prérequis
 
 - Accès à une **clé d’API Tiny Cloud** (TinyMCE) gratuite
-- **Docker** & **Docker Compose** *ou* votre environnement runtime habituel (à préciser selon la stack)
+- **Docker** & **Docker Compose** *ou* votre environnement runtime habituel
 - Fichier d’environnement `.env`
 
 ---
@@ -158,5 +158,4 @@ Ce projet est sous licence **MIT**. Consultez le fichier [LICENSE](LICENSE) pour
 
 ## Crédits
 
-- Éditeur : **TinyMCE / Tiny Cloud**
 - Auteurs & mainteneurs : Nathan Fourny

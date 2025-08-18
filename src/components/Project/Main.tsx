@@ -6,6 +6,10 @@ import { CharactersPage } from '../characters/CharactersPage'
 import { CharactersTemplatePage } from '../characters/CharactersTemplatePage'
 import { DefaultPage } from '../common/DefaultPage'
 import { CharacterTagsManagerPage } from '../characters/CharacterTagsManagerPage'
+import { PlacesPage } from '../places/PlacesPage'
+import { PlacesTagsManagerPage } from '../places/PlacesTagsManagerPage'
+import { ItemsPage } from '../items/ItemsPage'
+import { ItemsTagsManagerPage } from '../items/ItemsTagsManagerPage'
 
 interface Props {
   active: SidebarSections
@@ -44,6 +48,29 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
       </main>
     )
   }
+
+  if (active === 'lore-places') {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto">
+        <PlacesPage projectId={projectId} />
+      </main>
+    )
+  }
+  if (active === 'lore-places-tags') {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto">
+        <PlacesTagsManagerPage projectId={projectId} />
+      </main>
+    )
+  }
+
+  if (active === 'lore-items') {
+    return (<main className="flex-1 p-8 overflow-y-auto"><ItemsPage projectId={projectId} /></main>)
+  }
+  if (active === 'lore-items-tags') {
+    return (<main className="flex-1 p-8 overflow-y-auto"><ItemsTagsManagerPage projectId={projectId} /></main>)
+  }
+    
 
   // Autres onglets non implémentés
   return (
