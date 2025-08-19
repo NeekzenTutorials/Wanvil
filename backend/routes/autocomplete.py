@@ -1,7 +1,7 @@
 # backend/routes/autocomplete.py
 from flask import Blueprint, jsonify, request
 from sqlalchemy import or_
-from ..models import Collection, Character, Place, Item
+from ..models import Collection, Character, Place, Item, Event
 from ..database import db
 
 autocomplete_bp = Blueprint("autocomplete", __name__, url_prefix="/api")
@@ -66,8 +66,27 @@ def autocomplete(collection_id):
         "hint": it.category
     } for it in items]
 
+    events = (
+        db.session.query(Event)
+        .filter(Event.collection_id == collection_id)
+        .filter(or_(Event.name.ilike(_like(q)), Event.description.ilike(_like(q))))
+        .order_by(Event.start_date.asc(), Event.name.asc())
+        .limit(limit)
+        .all()
+    )
+    def _fmt_date(e: Event) -> str:
+        s = e.start_date.isoformat()
+        return f"{s} → {e.end_date.isoformat()}" if e.end_date else s
+
+    event_rows = [{
+        "id": e.id,
+        "type": "event",
+        "label": e.name,
+        "hint": _fmt_date(e),
+    } for e in events]
+
     # Fusion simple + tri par label
-    rows = char_rows + place_rows + item_rows
+    rows = char_rows + place_rows + item_rows + event_rows
     rows.sort(key=lambda r: r["label"].lower())
 
     # coupe au total si nécessaire

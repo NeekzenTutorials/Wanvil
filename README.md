@@ -83,11 +83,11 @@
 
 - [x] Éditeur de chapitres (TinyMCE / Tiny Cloud)
 - [x] Modèles de **fiches** (personnages, lieux, objets, événements)  
-    ![En cours](https://img.shields.io/badge/statut-en%20cours-yellow)
-- [ ] **Auto-complétion** basée sur les fiches
+- [x] **Auto-complétion** basée sur les fiches
 - [ ] **Statistiques** (mots/chapitre, occurrences d’entités)
-- [ ] **Annotations** et notes de relecture
-- [ ] **Navigation**: liens dynamiques entre fiches et chapitres
+- [x] **Annotations** et notes de relecture
+      ![En cours](https://img.shields.io/badge/statut-en%20cours-yellow)
+- [x] **Navigation**: liens dynamiques entre fiches et chapitres
 - [ ] **Frise chronologique** et gestion de dates
 - [ ] Export/Import de projets
 - [ ] Authentification & rôles (si collaboration)

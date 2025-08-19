@@ -4,6 +4,7 @@ import { apiGet, apiPut } from '../../utils/fetcher'
 import { Editor } from '@tinymce/tinymce-react'
 
 type Tag = { id:string; name:string; color?:string; note?:string }
+const TINYMCE_API_KEY = import.meta.env.VITE_TINYMCE_API_KEY || '';
 
 type CustomField = {
   id: string
@@ -107,7 +108,7 @@ export function ItemsForm({ itemId, collectionId, onClose }:{
             <div className="text-sm font-medium text-gray-700">Description</div>
             <Editor
               value={data.description || ''}
-              apiKey="ll8xm35gqhxdg1vzghapkgye0nj2t7ob6xigqmhm8ne5na5h"
+              apiKey={TINYMCE_API_KEY}
               onEditorChange={(html)=>setData((p:any)=>({...p, description: html}))}
               init={{ menubar:false, height:300, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
             />

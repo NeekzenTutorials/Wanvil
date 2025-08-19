@@ -5,6 +5,7 @@ import { apiGet, apiPut } from '../../utils/fetcher'
 import AutocompletePopover, { type AcItem } from '../common/AutoCompletePopover'
 
 type Chapter = { id: string; title: string; content: string; position?: number }
+const TINYMCE_API_KEY = import.meta.env.VITE_TINYMCE_API_KEY || '';
 
 interface ChapterEditorProps {
   chapterId: string
@@ -12,12 +13,14 @@ interface ChapterEditorProps {
   collectionId?: string
 }
 
-type Suggestion = { id: string; type: 'character'|'place'|'item'; label: string; hint?: string | null }
+type Suggestion = { id: string; type: 'character'|'place'|'item'|'event'; label: string; hint?: string | null }
 
 export default function ChapterEditor({ chapterId, onSaved, collectionId: collectionIdProp }: ChapterEditorProps) {
   const [loading, setLoading] = useState(true)
   const [content, setContent] = useState('')
   const [saving, setSaving] = useState(false)
+  const [viewMode, setViewMode] = useState<'edit'|'render'>('edit')
+  const viewModeRef = useRef<'edit'|'render'>('edit')
 
   // ---- collectionId (avec ref pour TinyMCE closures)
   const [collectionId, setCollectionId] = useState<string | null>(collectionIdProp ?? null)
@@ -31,6 +34,23 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
       .then((c) => setContent(c.content || ''))
       .finally(() => setLoading(false))
   }, [chapterId])
+
+  useEffect(() => {
+    viewModeRef.current = viewMode
+    const ed = editorRef.current
+    if (!ed) return
+    const body = ed.getBody?.()
+    if (!body) return
+    if (viewMode === 'edit') {
+      body.classList.add('wv-mode-edit')
+      body.classList.remove('wv-mode-render')
+    } else {
+      body.classList.add('wv-mode-render')
+      body.classList.remove('wv-mode-edit')
+    }
+    // notifier les boutons TinyMCE pour mettre à jour leur état actif
+    try { ed.fire('wv:mode'); } catch {}
+  }, [viewMode])
 
   // ---- récup collection si absente
   useEffect(() => {
@@ -144,7 +164,7 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
     try { ed.focus(false) } catch {}
   
     const { rng } = getCurrentWord(ed)
-    const html = `<span data-entity-type="${s.type}" data-entity-id="${s.id}" class="wv-entity">${escapeHtml(s.label)}</span>`
+    const html = `<span data-entity-type="${s.type}" data-entity-id="${s.id}" class="wv-entity" title="Ctrl/Cmd + clic pour ouvrir">${escapeHtml(s.label)}</span>`
   
     ed.undoManager.transact(() => {
       if (rng) ed.selection.setRng(rng)
@@ -163,21 +183,73 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
         value={content}
         onEditorChange={(v) => setContent(v)}
         onInit={(_, editor) => { editorRef.current = editor }}  // garder une réf de l’instance
-        apiKey="ll8xm35gqhxdg1vzghapkgye0nj2t7ob6xigqmhm8ne5na5h"
+        apiKey={TINYMCE_API_KEY}
         init={{
           height: 600,
           menubar: false,
           branding: false,
           toolbar_mode: 'sliding',
-          extended_valid_elements: 'span[data-entity-type|data-entity-id|class]',
+          extended_valid_elements: 'span[data-entity-type|data-entity-id|class|title]',
+          content_style: `
+            .wv-entity{
+              padding:1px 4px; border-radius:4px; cursor:pointer;
+              text-decoration:none; transition:filter .15s ease;
+            }
+            .wv-mode-edit .wv-entity:hover{ filter:brightness(0.95); }
+            /* couleurs visibles UNIQUEMENT en mode édition */
+            .wv-mode-edit .wv-entity[data-entity-type="character"]{ background:#e0f2fe; color:#075985; }
+            .wv-mode-edit .wv-entity[data-entity-type="place"]{     background:#dcfce7; color:#166534; }
+            .wv-mode-edit .wv-entity[data-entity-type="item"]{      background:#fef3c7; color:#92400e; }
+            .wv-mode-edit .wv-entity[data-entity-type="event"]{     background:#ede9fe; color:#5b21b6; }
+            .wv-mode-edit .wv-entity::after{
+              content:" ⌃click"; font-size:.7em; opacity:.4; margin-left:.25em;
+            }
+            /* Mode rendu : neutre */
+            .wv-mode-render .wv-entity{ background:none !important; color:inherit !important; padding:0; }
+            .wv-mode-render .wv-entity::after{ display:none; }
+          `,
           plugins: 'lists link image table code help wordcount fullscreen searchreplace visualblocks pagebreak',
           toolbar:
             'undo redo | blocks | bold italic underline strikethrough | ' +
             'alignleft aligncenter alignright alignjustify | ' +
             'bullist numlist outdent indent | link image table pagebreak | ' +
-            'removeformat | fullscreen | code',
+            'removeformat | fullscreen | code | wvEditMode wvRenderMode',
             setup: (ed:any) => {
               ed.on('blur', closeAC)
+
+              ed.on('init', () => {
+                try {
+                  const body = ed.getBody?.()
+                  if (!body) return
+                  if (viewModeRef.current === 'edit') body.classList.add('wv-mode-edit')
+                  else body.classList.add('wv-mode-render')
+                } catch {}
+              })
+  
+              // Boutons "Édition" et "Rendu"
+                ed.ui.registry.addToggleButton('wvEditMode', {
+                  text: 'Édition',
+                  tooltip: 'Afficher les couleurs et le hint ⌃click',
+                  onAction: () => setViewMode('edit'),
+                  onSetup: (api: { setActive: (state: boolean) => void }) => {
+                    api.setActive(viewModeRef.current === 'edit')
+                    const fn = () => api.setActive(viewModeRef.current === 'edit')
+                    ed.on('wv:mode', fn)
+                    return () => ed.off('wv:mode', fn)
+                  }
+                })
+
+                ed.ui.registry.addToggleButton('wvRenderMode', {
+                  text: 'Rendu',
+                  tooltip: 'Masquer les gizmos de colorisation',
+                  onAction: () => setViewMode('render'),
+                  onSetup: (api: { setActive: (state: boolean) => void }) => {
+                    api.setActive(viewModeRef.current === 'render')
+                    const fn = () => api.setActive(viewModeRef.current === 'render')
+                    ed.on('wv:mode', fn)
+                    return () => ed.off('wv:mode', fn)
+                  }
+                })
             
               // arrow nav + Esc (leave Enter/Tab to capture handlers below)
               ed.on('keydown', (ev: KeyboardEvent) => {
@@ -219,7 +291,7 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
                     `collections/${collId}/autocomplete?q=${encodeURIComponent(word)}&limit=10`
                   )
                   if (rows.length) {
-                    setAcItems(rows)
+                    setAcItems(rows as AcItem[])
                     setAcIndex(0)
                     setAcAnchor(maybeAnchor)
                   } else {
@@ -227,6 +299,18 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
                   }
                 } catch { closeAC() }
               }, 150)
+            })
+
+            ed.on('click', (e:any) => {
+              if (viewModeRef.current !== 'edit') return
+              if (!e.metaKey && !e.ctrlKey) return
+              const el = (e.target as HTMLElement)?.closest?.('.wv-entity') as HTMLElement | null
+              if (!el) return
+              e.preventDefault()
+              const type = el.getAttribute('data-entity-type') as 'character'|'place'|'item'|'event'
+              const id   = el.getAttribute('data-entity-id')!
+              // Émettre un event global pour que React ouvre la bonne View
+              window.dispatchEvent(new CustomEvent('wv:open-entity', { detail: { type, id } }))
             })
 
             // si la page scroll/resize, recalcule l’ancre (si ouvert)

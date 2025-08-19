@@ -1,21 +1,22 @@
-// src/components/items/ItemsPage.tsx
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Plus, Trash2, Edit3 } from 'lucide-react'
 import { apiGet, apiPost, apiDelete } from '../../utils/fetcher'
 import TagFilterPopover from '../common/TagFilterPopover'
-import { ItemsForm } from './ItemsForm'
-import { ItemView } from './ItemView'
+import { EventsForm } from './EventsForm'
+import { EventView } from './EventView'
 
 type Collection = { id: string; name: string }
 type Tag = { id: string; name: string; color?: string; note?: string }
 
-export function ItemsPage({ projectId }: { projectId: string }) {
+export function EventsPage({ projectId }: { projectId: string }) {
   const [collections, setCollections] = useState<Collection[]>([])
   const [collectionId, setCollectionId] = useState<string | null>(null)
 
   const [tags, setTags] = useState<Tag[]>([])
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [q, setQ] = useState('')
+  const [dateFrom, setDateFrom] = useState<string>('') // YYYY-MM-DD
+  const [dateTo, setDateTo] = useState<string>('')     // YYYY-MM-DD
   const [cards, setCards] = useState<any[]>([])
 
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -38,49 +39,60 @@ export function ItemsPage({ projectId }: { projectId: string }) {
 
   useEffect(() => {
     if (!collectionId) return
-    apiGet<Tag[]>(`collections/${collectionId}/tags?scope=item`).then(setTags)
-    fetchItems()
+    apiGet<Tag[]>(`collections/${collectionId}/tags?scope=event`).then(setTags)
+    fetchEvents()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collectionId, selectedTagIds, q, matchMode])
+  }, [collectionId, selectedTagIds, q, dateFrom, dateTo, matchMode])
 
-  const fetchItems = async () => {
+  const fetchEvents = async () => {
     if (!collectionId) return
     const qs = new URLSearchParams()
     if (selectedTagIds.length) qs.set('tags', selectedTagIds.join(','))
     if (q.trim()) qs.set('query', q.trim())
+    if (dateFrom) qs.set('from', dateFrom)
+    if (dateTo) qs.set('to', dateTo)
     qs.set('match', matchMode)
-    const data = await apiGet<any[]>(`collections/${collectionId}/items?${qs.toString()}`)
+    const data = await apiGet<any[]>(`collections/${collectionId}/events?${qs.toString()}`)
     setCards(data)
   }
 
-  const createItem = async () => {
+  const todayISO = () => new Date().toISOString().slice(0, 10)
+
+  const createEvent = async () => {
     if (!collectionId) { alert('Choisissez une collection'); return }
     try {
-      const it = await apiPost<any>(`collections/${collectionId}/items`, {
-        name: 'Nouvel objet',
+      const ev = await apiPost<any>(`collections/${collectionId}/events`, {
+        name: 'Nouvel évènement',
+        startDate: todayISO(),
+        endDate: null,
         description: '',
         images: [],
         content: {}
       })
-      setEditingId(it.id)
-      fetchItems()
+      setEditingId(ev.id)
+      fetchEvents()
     } catch (e) {
       console.error(e); alert('La création a échoué (voir console).')
     }
   }
 
-  const deleteItem = async (id: string) => {
+  const deleteEvent = async (id: string) => {
     const card = cards.find(c => c.id === id)
-    const label = card ? card.name : 'cet objet'
+    const label = card ? card.name : 'cet évènement'
     if (!confirm(`Supprimer définitivement ${label} ?`)) return
     setDeletingId(id)
     try {
-      await apiDelete(`items/${id}`)
+      await apiDelete(`events/${id}`)
       if (editingId === id) setEditingId(null)
-      await fetchItems()
+      await fetchEvents()
     } finally {
       setDeletingId(null)
     }
+  }
+
+  const formatDates = (start?: string, end?: string) => {
+    if (!start) return '—'
+    return end ? `${start} → ${end}` : start
   }
 
   function renderCard(card: any): ReactNode {
@@ -91,10 +103,10 @@ export function ItemsPage({ projectId }: { projectId: string }) {
         onClick={() => setViewingId(card.id)}
       >
         <button
-          onClick={(e) => { e.stopPropagation(); deleteItem(card.id) }}
+          onClick={(e) => { e.stopPropagation(); deleteEvent(card.id) }}
           disabled={deletingId === card.id}
-          title="Supprimer cet objet"
-          aria-label="Supprimer cet objet"
+          title="Supprimer cet évènement"
+          aria-label="Supprimer cet évènement"
           className={[
             "absolute top-2 right-2 p-1.5 rounded-full border text-red-600 bg-white/95",
             "hover:bg-red-50 hover:border-red-300 shadow-sm",
@@ -113,28 +125,25 @@ export function ItemsPage({ projectId }: { projectId: string }) {
             <Trash2 className="w-4 h-4" />
           )}
         </button>
+
         <button
           onClick={(e) => { e.stopPropagation(); setEditingId(card.id) }}
-          title="Éditer cet objet"
-          aria-label="Éditer cet objet"
-          className={[
-            "absolute top-2 right-10 p-1.5 rounded-full border bg-white/95",
-            "hover:bg-gray-50 hover:border-gray-300 shadow-sm",
-            "transition-opacity",
-            "opacity-100",
-            "sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
-          ].join(" ")}
+          title="Éditer cet évènement"
+          aria-label="Éditer cet évènement"
+          className="absolute top-2 right-10 p-1.5 rounded-full border bg-white/95 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
         >
           <Edit3 className="w-4 h-4" />
         </button>
 
+
         <img
-          src={card.coverUrl || '/placeholder-item.svg'}
+          src={card.coverUrl || '/placeholder-event.svg'}
           className="w-12 h-12 rounded object-cover"
           alt=""
         />
         <div className="flex-1">
           <div className="font-medium">{card.name}</div>
+          <div className="text-xs text-gray-500">{formatDates(card.startDate, card.endDate)}</div>
           <div className="flex gap-1 flex-wrap mt-1">
             {(card.tags || []).map((tag: any) => (
               <span
@@ -195,6 +204,13 @@ export function ItemsPage({ projectId }: { projectId: string }) {
           onChange={e => setQ(e.target.value)}
         />
 
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-700">Du</label>
+          <input type="date" className="border rounded px-2 py-2" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} />
+          <label className="text-sm text-gray-700">Au</label>
+          <input type="date" className="border rounded px-2 py-2" value={dateTo} onChange={e=>setDateTo(e.target.value)} />
+        </div>
+
         <TagFilterPopover
           tags={tags}
           noteOptions={noteOptions}
@@ -225,8 +241,8 @@ export function ItemsPage({ projectId }: { projectId: string }) {
             {noteOptions.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
 
-          <button onClick={createItem} className="btn-primary inline-flex items-center gap-1">
-            <Plus className="w-4 h-4" /> Nouvel objet
+          <button onClick={createEvent} className="btn-primary inline-flex items-center gap-1">
+            <Plus className="w-4 h-4" /> Nouvel évènement
           </button>
         </div>
       </div>
@@ -273,21 +289,21 @@ export function ItemsPage({ projectId }: { projectId: string }) {
         </div>
       )}
 
-      {/* Drawer VIEW */}
+      {/* VIEW */}
       {viewingId && (
-        <ItemView
-          itemId={viewingId}
+        <EventView
+          eventId={viewingId}
           onClose={() => setViewingId(null)}
           onEdit={(id) => { setViewingId(null); setEditingId(id) }}
         />
       )}
 
-      {/* Drawer EDIT */}
+      {/* EDIT */}
       {editingId && (
-        <ItemsForm
-          itemId={editingId}
+        <EventsForm
+          eventId={editingId}
           collectionId={collectionId!}
-          onClose={() => { setEditingId(null); fetchItems() }}
+          onClose={() => { setEditingId(null); fetchEvents() }}
         />
       )}
     </div>

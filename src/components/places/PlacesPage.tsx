@@ -2,9 +2,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { apiGet, apiPost, apiDelete } from '../../utils/fetcher'
-import { Plus, Trash2, MapPin } from 'lucide-react'
+import { Plus, Trash2, MapPin, Edit3 } from 'lucide-react'
 import TagFilterPopover from '../common/TagFilterPopover'
 import { PlacesForm } from './PlacesForm'
+import { PlaceView } from './PlaceView'
 
 type Collection = { id: string; name: string }
 type Tag = { id: string; name: string; color?: string; note?: string }
@@ -27,6 +28,7 @@ export function PlacesPage({ projectId }: { projectId: string }) {
   const [cards, setCards] = useState<Card[]>([])
 
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [viewingId, setViewingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [matchMode, setMatchMode] = useState<'any'|'all'>('any')
 
@@ -99,7 +101,7 @@ export function PlacesPage({ projectId }: { projectId: string }) {
       <article
         key={card.id}
         className="relative group border rounded-xl bg-white p-4 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition"
-        onClick={() => setEditingId(card.id)}
+        onClick={() => setViewingId(card.id)}
       >
         <button
           onClick={(e) => { e.stopPropagation(); deletePlace(card.id) }}
@@ -116,6 +118,15 @@ export function PlacesPage({ projectId }: { projectId: string }) {
           ) : (
             <Trash2 className="w-4 h-4" />
           )}
+        </button>
+
+        <button
+          onClick={(e) => { e.stopPropagation(); setEditingId(card.id) }}
+          title="Éditer ce lieu"
+          aria-label="Éditer ce lieu"
+          className="absolute top-2 right-10 p-1.5 rounded-full border bg-white/95 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+        >
+          <Edit3 className="w-4 h-4" />
         </button>
 
         <img
@@ -261,12 +272,21 @@ export function PlacesPage({ projectId }: { projectId: string }) {
         </div>
       )}
 
+      {/* VIEW */}
+      {viewingId && (
+        <PlaceView
+          placeId={viewingId}
+          onClose={() => setViewingId(null)}
+          onEdit={(id) => { setViewingId(null); setEditingId(id) }}
+        />
+      )}
+      {/* EDIT */}
       {editingId && (
         <PlacesForm
           placeId={editingId}
           collectionId={collectionId!}
           onClose={() => { setEditingId(null); fetchPlaces() }}
-        />
+      />
       )}
     </div>
   )

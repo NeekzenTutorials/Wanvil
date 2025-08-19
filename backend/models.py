@@ -34,6 +34,7 @@ class Collection(db.Model):
     character_templates = db.relationship('CharacterTemplate', back_populates='collection', cascade='all, delete-orphan')
     places = db.relationship('Place', back_populates='collection', cascade='all, delete-orphan')
     items = db.relationship('Item', back_populates='collection', cascade='all, delete-orphan')
+    events = db.relationship('Event', back_populates='collection', cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -173,6 +174,7 @@ class Tag(db.Model):
     characters = db.relationship('Character', secondary='character_tags', back_populates='tags')
     places = db.relationship('Place', secondary='place_tags', back_populates='tags')
     items = db.relationship('Item', secondary='item_tags', back_populates='tags')
+    events = db.relationship('Event', secondary='event_tags', back_populates='tags')
 
     def to_dict(self):
         return {'id': self.id, 'name': self.name, 'color': self.color, 'note': self.note,
@@ -253,3 +255,41 @@ class ItemTag(db.Model):
     __tablename__ = 'item_tags'
     item_id = db.Column(db.String, db.ForeignKey('items.id'), primary_key=True)
     tag_id  = db.Column(db.String, db.ForeignKey('tags.id'), primary_key=True)
+
+class Event(db.Model):
+    __tablename__ = 'events'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(200), nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date   = db.Column(db.Date, nullable=True)
+
+    description = db.Column(db.Text, nullable=True)          # richtext HTML
+    images      = db.Column(db.JSON, nullable=True, default=list)
+    content     = db.Column(db.JSON, nullable=True, default=dict)  # champs custom typés (comme items/places)
+
+    collection_id = db.Column(db.String, db.ForeignKey('collections.id'), nullable=False)
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at    = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    collection = db.relationship('Collection', back_populates='events')
+    tags = db.relationship('Tag', secondary='event_tags', back_populates='events')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'startDate': self.start_date.isoformat(),
+            'endDate': self.end_date.isoformat() if self.end_date else None,
+            'description': self.description,
+            'images': self.images or [],
+            'collectionId': self.collection_id,
+            'content': self.content or {},
+            'tags': [t.to_dict() for t in self.tags],
+            'createdAt': self.created_at.isoformat(),
+            'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+class EventTag(db.Model):
+    __tablename__ = 'event_tags'
+    event_id = db.Column(db.String, db.ForeignKey('events.id'), primary_key=True)
+    tag_id   = db.Column(db.String, db.ForeignKey('tags.id'), primary_key=True)

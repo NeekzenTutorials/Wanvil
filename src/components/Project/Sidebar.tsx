@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import Hierarchy from '../common/Hierarchy';
 import { SidebarButton } from '../common/SidebarButton';
-import { BookOpenText, Users, ListTree, Book, Clock, Cog, LayoutTemplate, Tag as TagIcon } from 'lucide-react';
+import { BookOpenText, Users, ListTree, Book, Clock, Cog, LayoutTemplate, Calendar, Tag as TagIcon } from 'lucide-react';
 import type { SidebarSections, CharactersSubView } from '../../types/sidebarSections';
 import type { SelectedNode } from '../../types/selectedNodes';
 
@@ -33,18 +33,15 @@ export const ProjectSidebar: FC<ProjectSidebarProps> = ({
           onClick={() => setActive('redaction')}
         />
 
-        {/* Personnages */}
-        <div className="mt-2 mb-1 text-xs font-semibold text-gray-500 px-2 uppercase tracking-wide">
-          Personnages
-        </div>
+        
+
+        <div className="mt-3 mb-1 text-xs font-semibold text-gray-500 px-2 uppercase tracking-wide">Lore</div>
         <SidebarButton
           icon={<Users className="w-4 h-4" />}
           label="Personnages"
           active={active === 'characters'}
           onClick={() => setActive('characters')}
         />
-
-        <div className="mt-3 mb-1 text-xs font-semibold text-gray-500 px-2 uppercase tracking-wide">Lore</div>
         <SidebarButton
           icon={<ListTree className="w-4 h-4" />}
           label="Lieux"
@@ -59,6 +56,13 @@ export const ProjectSidebar: FC<ProjectSidebarProps> = ({
         />
         <SidebarButton
           icon={<Clock className="w-4 h-4" />}
+          label="Évènements"
+          active={active === 'lore-events' || active === 'lore-events-tags'}
+          onClick={() => setActive('lore-events')}
+        />
+        <div className="mt-3 mb-1 text-xs font-semibold text-gray-500 px-2 uppercase tracking-wide"> Gestion </div>
+        <SidebarButton
+          icon={<Calendar className="w-4 h-4" />}
           label="Chronologie"
           active={active === 'chronology'}
           onClick={() => setActive('chronology')}
@@ -187,6 +191,38 @@ export const ProjectSidebar: FC<ProjectSidebarProps> = ({
             </ul>
             <p className="text-xs text-gray-500 mt-3">
               Les tags des objets sont isolés (scope <code>item</code>).
+            </p>
+          </div>
+        )}
+
+        {(active === 'lore-events' || active === 'lore-events-tags') && (
+          <div className="px-2">
+            <ul className="space-y-1">
+              <li>
+                <button
+                  type="button"
+                  className={subItemClass(active === 'lore-events')}
+                  onClick={() => setActive('lore-events')}
+                  aria-current={active === 'lore-events' ? 'page' : undefined}
+                >
+                  <Clock className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Liste</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={subItemClass(active === 'lore-events-tags')}
+                  onClick={() => setActive('lore-events-tags')}
+                  aria-current={active === 'lore-events-tags' ? 'page' : undefined}
+                >
+                  <TagIcon className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Tags</span>
+                </button>
+              </li>
+            </ul>
+            <p className="text-xs text-gray-500 mt-3">
+              Les tags des évènements sont isolés (scope <code>event</code>).
             </p>
           </div>
         )}

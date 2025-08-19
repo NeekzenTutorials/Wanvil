@@ -5,6 +5,8 @@ export type SidebarSections =
   | 'lore-places-tags'
   | 'lore-items'
   | 'lore-items-tags'
+  | 'lore-events'
+  | 'lore-events-tags'
   | 'chronology'
   | 'settings'
 

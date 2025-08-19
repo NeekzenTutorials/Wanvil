@@ -73,7 +73,7 @@ def list_tags(collection_id):
     Collection.query.get_or_404(collection_id)
     scope = (request.args.get("scope") or "").strip()
     q = Tag.query.filter_by(collection_id=collection_id)
-    if scope in ("character", "place", "item"):
+    if scope in ("character", "place", "item", "event"):
         q = q.filter(Tag.scope == scope)
     tags = q.order_by(Tag.name.asc()).all()
     return jsonify([t.to_dict() for t in tags]), 200
@@ -87,7 +87,7 @@ def create_tag(collection_id):
     scope = (data.get("scope") or "").strip()
     if not name:
         return {"error": "name required"}, 400
-    if scope not in ("character", "place", "item"):
+    if scope not in ("character", "place", "item", "event"):
         return {"error": "scope 'character' or 'place' required"}, 400
     t = Tag(name=name, color=color, collection_id=collection_id, scope=scope)
     if "note" in data:
@@ -112,7 +112,7 @@ def update_tag(tag_id):
         t.note = (data["note"] or None)
     if "scope" in data:
         s = (data["scope"] or "").strip()
-        if s not in ("character", "place", "item"):
+        if s not in ("character", "place", "item", "event"):
             return {"error": "invalid scope"}, 400
         t.scope = s
     db.session.commit()

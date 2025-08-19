@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
-export type AcItem = { id: string; type: 'character'|'place'|'item'; label: string; hint?: string | null }
+export type AcItem = { id:string; type:'character'|'place'|'item'|'event'; label:string; hint?:string|null }
 
 interface Props {
   anchor: { x: number; y: number } | null
@@ -27,7 +27,11 @@ export default function AutocompletePopover({ anchor, items, activeIndex, onHove
 
   if (!anchor || !items.length) return null
 
-  const icon = (t: AcItem['type']) => (t === 'character' ? '👤' : t === 'place' ? '📍' : '📦')
+  const icon = (t: AcItem['type']) =>
+    t === 'character' ? '👤' :
+    t === 'place'     ? '📍' :
+    t === 'item'      ? '📦' :
+                        '📅'  
 
   return createPortal(
     <div

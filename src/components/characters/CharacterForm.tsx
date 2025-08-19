@@ -4,6 +4,8 @@ import type { CharacterTemplate, TemplateField } from '../../types/character'
 import { Editor } from '@tinymce/tinymce-react'
 type Tag = { id:string; name:string; color?:string }
 
+const TINYMCE_API_KEY = import.meta.env.VITE_TINYMCE_API_KEY || '';
+
 export function CharacterForm({ characterId, collectionId, onClose }:{
   characterId:string, collectionId:string, onClose:()=>void
 }) {
@@ -118,7 +120,7 @@ function Field({ field, value, onChange }:{ field:TemplateField; value:any; onCh
     <Chips value={Array.isArray(value)? value: []} options={field.options||[]} onChange={onChange} />
   </Labeled>
   if (field.type === 'richtext') return <Labeled label={field.label}>
-    <Editor value={value||''} apiKey="ll8xm35gqhxdg1vzghapkgye0nj2t7ob6xigqmhm8ne5na5h" onEditorChange={onChange} init={{ menubar:false, height:300, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }} />
+    <Editor value={value||''} apiKey={TINYMCE_API_KEY} onEditorChange={onChange} init={{ menubar:false, height:300, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }} />
   </Labeled>
   if (field.type === 'images')   return <Labeled label={field.label}>
     <input type="url" placeholder="URL d’image (séparées par virgules)" className="border rounded px-3 py-2 w-full"

@@ -3,6 +3,10 @@ import { Plus, Trash2, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, Pencil, Ch
 import { apiGet, apiPut, apiDelete, apiPost } from '../../utils/fetcher'
 import type { SelectedNode } from '../../types/selectedNodes'
 import ChapterEditor from '../Editor/ChapterEditor'
+import { CharacterView } from '../characters/CharacterView'
+import { ItemView } from '../items/ItemView'
+import { PlaceView } from '../places/PlaceView'
+import { EventView } from '../events/EventView'
 
 interface NodeDetailsProps {
   selected: SelectedNode | null
@@ -25,6 +29,11 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
 
+  const [viewingCharacterId, setViewingCharacterId] = useState<string|null>(null)
+  const [viewingPlaceId, setViewingPlaceId] = useState<string|null>(null)
+  const [viewingItemId, setViewingItemId] = useState<string|null>(null)
+  const [viewingEventId, setViewingEventId] = useState<string|null>(null)
+
   useEffect(() => {
     if (!selected) return
     const { id, level } = selected
@@ -42,6 +51,18 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
       })
       .finally(() => setLoading(false))
   }, [selected])
+
+  useEffect(() => {
+    const onOpen = (ev: any) => {
+      const { type, id } = ev.detail as {type:'character'|'place'|'item'|'event'; id:string}
+      if      (type === 'character') setViewingCharacterId(id)
+      else if (type === 'place')     setViewingPlaceId(id)
+      else if (type === 'item')      setViewingItemId(id)
+      else if (type === 'event')     setViewingEventId(id)
+    }
+    window.addEventListener('wv:open-entity', onOpen as any)
+    return () => window.removeEventListener('wv:open-entity', onOpen as any)
+  }, [])
 
   const isTome = selected?.level === 'tome'
   const childrenKey = selected?.level === 'collection' ? 'sagas' : 'tomes'
@@ -307,6 +328,35 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
             </button>
           )}
         </section>
+      )}
+      {/* Vues descriptives déclenchées depuis l’éditeur */}
+      {viewingCharacterId && (
+        <CharacterView
+          characterId={viewingCharacterId}
+          onClose={() => setViewingCharacterId(null)}
+          onEdit={(id) => { setViewingCharacterId(null); /* si tu veux ouvrir l’éditeur natif ici */ }}
+        />
+      )}
+      {viewingPlaceId && (
+        <PlaceView
+          placeId={viewingPlaceId}
+          onClose={() => setViewingPlaceId(null)}
+          onEdit={undefined}
+        />
+      )}
+      {viewingItemId && (
+        <ItemView
+          itemId={viewingItemId}
+          onClose={() => setViewingItemId(null)}
+          onEdit={undefined}
+        />
+      )}
+      {viewingEventId && (
+        <EventView
+          eventId={viewingEventId}
+          onClose={() => setViewingEventId(null)}
+          onEdit={undefined}
+        />
       )}
     </div>
   )
