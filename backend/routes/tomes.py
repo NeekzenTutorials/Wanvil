@@ -135,6 +135,10 @@ def update_chapter(chapter_id):
             return {'error': 'Title required'}, 400
     if 'content' in payload:
         c.content = payload['content'] or ''
+    if "notes" in payload:
+        c.notes = payload["notes"] or ""
+    if "annotations" in payload:
+        c.annotations = payload.get("annotations", {}) or {}
     db.session.commit()
     return jsonify(c.to_dict()), 200
 

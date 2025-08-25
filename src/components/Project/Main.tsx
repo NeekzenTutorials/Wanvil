@@ -12,6 +12,7 @@ import { ItemsPage } from '../items/ItemsPage'
 import { ItemsTagsManagerPage } from '../items/ItemsTagsManagerPage'
 import { EventsPage } from '../events/EventsPage'
 import { EventsTagsManagerPage } from '../events/EventsTagsManagerPage'
+import { AnalyticsPage } from '../analytics/AnalyticsPage'
 
 interface Props {
   active: SidebarSections
@@ -87,6 +88,15 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
       </main>
     )
   }
+
+  if (active === 'analytics') {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto">
+        <AnalyticsPage projectId={projectId} />
+      </main>
+    )
+  }
+  
     
 
   // Autres onglets non implémentés

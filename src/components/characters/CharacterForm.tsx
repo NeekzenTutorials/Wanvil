@@ -120,7 +120,7 @@ function Field({ field, value, onChange }:{ field:TemplateField; value:any; onCh
     <Chips value={Array.isArray(value)? value: []} options={field.options||[]} onChange={onChange} />
   </Labeled>
   if (field.type === 'richtext') return <Labeled label={field.label}>
-    <Editor value={value||''} apiKey={TINYMCE_API_KEY} onEditorChange={onChange} init={{ menubar:false, height:300, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }} />
+    <Editor licenseKey='gpl' tinymceScriptSrc="/tinymce/tinymce.min.js" value={value||''} onEditorChange={onChange} init={{ base_url: '/tinymce', suffix: '.min',menubar:false, height:300, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }} />
   </Labeled>
   if (field.type === 'images')   return <Labeled label={field.label}>
     <input type="url" placeholder="URL d’image (séparées par virgules)" className="border rounded px-3 py-2 w-full"

@@ -100,10 +100,11 @@ export function EventsForm({ eventId, collectionId, onClose }:{
           <div className="space-y-1">
             <div className="text-sm font-medium text-gray-700">Description</div>
             <Editor
+              licenseKey='gpl'
+              tinymceScriptSrc="/tinymce/tinymce.min.js"
               value={data.description || ''}
-              apiKey={TINYMCE_API_KEY}
               onEditorChange={(html)=>setData((p:any)=>({...p, description: html}))}
-              init={{ menubar:false, height:300, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
+              init={{ base_url: '/tinymce', suffix: '.min', menubar:false, height:300, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
             />
           </div>
 
@@ -193,9 +194,10 @@ export function EventsForm({ eventId, collectionId, onClose }:{
                     {f.type === 'richtext' && (
                       <Editor
                         value={f.value || ''}
-                        apiKey="ll8xm35gqhxdg1vzghapkgye0nj2t7ob6xigqmhm8ne5na5h"
+                        licenseKey="gpl"
+                        tinymceScriptSrc="/tinymce/tinymce.min.js"
                         onEditorChange={(html)=>updateField(f.id,{value: html})}
-                        init={{ menubar:false, height:250, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
+                        init={{ base_url: '/tinymce', suffix: '.min', menubar:false, height:250, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
                       />
                     )}
                   </div>

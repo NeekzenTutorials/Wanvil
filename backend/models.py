@@ -96,7 +96,8 @@ class Chapter(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
     position = db.Column(db.Integer, nullable=True)
-    
+    notes = db.Column(db.Text, default="")
+    annotations = db.Column(db.JSON, nullable=True, default=dict)
 
     tome = db.relationship('Tome', back_populates='chapters')
 
@@ -107,6 +108,8 @@ class Chapter(db.Model):
             'content': self.content,
             'tomeId': self.tome_id,
             'position': self.position,
+            "notes": self.notes or "",
+            'annotations': self.annotations or {},
             'createdAt': self.created_at.isoformat(),
             'updatedAt': self.updated_at.isoformat() if self.updated_at else None
         }

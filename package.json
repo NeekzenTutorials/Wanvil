@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "node scripts/copy-tinymce.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.83.0",
@@ -19,6 +20,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.3",
+    "tinymce": "^8.0.2",
     "vite-plugin-tailwindcss": "^0.0.0-0"
   },
   "devDependencies": {

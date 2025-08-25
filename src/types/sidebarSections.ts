@@ -8,7 +8,8 @@ export type SidebarSections =
   | 'lore-events'
   | 'lore-events-tags'
   | 'chronology'
-  | 'settings'
+  | 'analytics'
+  | 'settings';
 
 // sous-vue pour Personnages
 export type CharactersSubView = 'list' | 'template' | 'tags'
