@@ -4,7 +4,6 @@ import { apiGet, apiPut } from '../../utils/fetcher'
 import { Editor } from '@tinymce/tinymce-react'
 
 type Tag = { id:string; name:string; color?:string; note?:string }
-const TINYMCE_API_KEY = import.meta.env.VITE_TINYMCE_API_KEY || '';
 
 type CustomField = {
   id: string
@@ -111,7 +110,7 @@ export function ItemsForm({ itemId, collectionId, onClose }:{
               tinymceScriptSrc="/tinymce/tinymce.min.js"
               value={data.description || ''}  
               onEditorChange={(html)=>setData((p:any)=>({...p, description: html}))}
-              init={{ base_url: '/tinymce', suffix: '.min', menubar:false, height:300, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
+              init={{ base_url: '/tinymce', suffix: '.min', menubar:false, height:300, browser_spellcheck: true, contextmenu: false, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
             />
           </div>
 
@@ -240,7 +239,7 @@ export function ItemsForm({ itemId, collectionId, onClose }:{
                         licenseKey="gpl"
                         tinymceScriptSrc="/tinymce/tinymce.min.js"
                         onEditorChange={(html)=>updateCustomField(f.id, { value: html })}
-                        init={{ base_url: '/tinymce', suffix: '.min', menubar:false, height:250, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
+                        init={{ base_url: '/tinymce', suffix: '.min', menubar:false, height:250, browser_spellcheck: true, contextmenu: false, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
                       />
                     )}
                   </div>

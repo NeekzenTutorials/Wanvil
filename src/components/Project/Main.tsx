@@ -13,6 +13,7 @@ import { ItemsTagsManagerPage } from '../items/ItemsTagsManagerPage'
 import { EventsPage } from '../events/EventsPage'
 import { EventsTagsManagerPage } from '../events/EventsTagsManagerPage'
 import { AnalyticsPage } from '../analytics/AnalyticsPage'
+import { ChronologyPage } from '../chronology/ChronologyPage'
 
 interface Props {
   active: SidebarSections
@@ -93,6 +94,14 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
     return (
       <main className="flex-1 p-8 overflow-y-auto">
         <AnalyticsPage projectId={projectId} />
+      </main>
+    )
+  }
+
+  if (active === 'chronology') {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto">
+        <ChronologyPage projectId={projectId} />
       </main>
     )
   }

@@ -13,8 +13,8 @@ def create_app(test_config=None):
     CORS(app, resources={
     r"/api/*": {
         "origins": [
+            "http://localhost:5005",
             "http://localhost:5006",
-            "http://127.0.0.1:5006",
             "http://10.1.106.16:5006",  # IP de ton PC vue par le téléphone
         ],
         "supports_credentials": True,

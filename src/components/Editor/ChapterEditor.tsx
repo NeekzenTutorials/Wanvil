@@ -231,7 +231,6 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
   }, [acItems])
   useEffect(() => { acIndexRef.current = acIndex }, [acIndex])
   const [acAnchor, setAcAnchor] = useState<{x:number; y:number} | null>(null)
-  const [edRef, setEdRef] = useState<any>(null)
   const acceptRef = useRef(false)
   const editorRef = useRef<any>(null);
 
@@ -388,6 +387,8 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
           base_url: '/tinymce',
           suffix: '.min',
           height: 600,
+          browser_spellcheck: true,
+          contextmenu: false,
           menubar: false,
           branding: false,
           toolbar_mode: 'sliding',

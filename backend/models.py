@@ -35,6 +35,7 @@ class Collection(db.Model):
     places = db.relationship('Place', back_populates='collection', cascade='all, delete-orphan')
     items = db.relationship('Item', back_populates='collection', cascade='all, delete-orphan')
     events = db.relationship('Event', back_populates='collection', cascade='all, delete-orphan')
+    timeline = db.relationship('CollectionTimeline', back_populates='collection', uselist=False, cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -296,3 +297,23 @@ class EventTag(db.Model):
     __tablename__ = 'event_tags'
     event_id = db.Column(db.String, db.ForeignKey('events.id'), primary_key=True)
     tag_id   = db.Column(db.String, db.ForeignKey('tags.id'), primary_key=True)
+
+
+class CollectionTimeline(db.Model):
+    __tablename__ = 'collection_timelines'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    collection_id = db.Column(db.String, db.ForeignKey('collections.id'), nullable=False, unique=True)
+    data = db.Column(db.JSON, nullable=True, default=dict)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    collection = db.relationship('Collection', back_populates='timeline')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'collectionId': self.collection_id,
+            'data': self.data or {},
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
+            'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
+        }

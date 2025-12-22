@@ -74,6 +74,7 @@ def list_events(collection_id):
         "name": ev.name,
         "startDate": ev.start_date.isoformat(),
         "endDate": ev.end_date.isoformat() if ev.end_date else None,
+        "description": ev.description or "",
         "coverUrl": (ev.images or [None])[0],
         "tags": [t.to_dict() for t in ev.tags],
     } for ev in q.all()]

@@ -32,7 +32,10 @@ export function CharactersPage({ projectId }: { projectId: string }) {
 
   // Load collections
   useEffect(() => {
-    apiGet<Collection[]>(`projects/${projectId}/collections`).then(setCollections)
+    apiGet<Collection[]>(`projects/${projectId}/collections`).then(cols => {
+      setCollections(cols)
+      if (cols.length && !collectionId) setCollectionId(cols[0].id)
+    })
   }, [projectId])
 
   // Load tags + characters (selon filtres)

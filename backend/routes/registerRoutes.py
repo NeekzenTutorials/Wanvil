@@ -10,6 +10,7 @@ from .items import items_bp
 from .autocomplete import autocomplete_bp
 from .chapters import chapters_extra_bp
 from .events import events_bp
+from .chronology import chronology_bp
 
 def register_routes(app: Flask):
     """Attach all Blueprint routes to the Flask app"""
@@ -24,3 +25,4 @@ def register_routes(app: Flask):
     app.register_blueprint(autocomplete_bp)
     app.register_blueprint(chapters_extra_bp)
     app.register_blueprint(events_bp)
+    app.register_blueprint(chronology_bp)

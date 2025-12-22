@@ -91,7 +91,7 @@ export function PlacesForm({ placeId, collectionId, onClose }:{ placeId:string, 
               tinymceScriptSrc="/tinymce/tinymce.min.js"
               value={data.description || ''}
               onEditorChange={(html)=>setData((p:any)=>({...p, description: html}))}
-              init={{ base_url: '/tinymce', suffix: '.min', menubar:false, height:300, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
+              init={{ base_url: '/tinymce', suffix: '.min', menubar:false, height:300, browser_spellcheck: true, contextmenu: false, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
             />
           </div>
 
@@ -188,7 +188,7 @@ export function PlacesForm({ placeId, collectionId, onClose }:{ placeId:string, 
                         licenseKey="gpl"
                         tinymceScriptSrc="/tinymce/tinymce.min.js"
                         onEditorChange={(html)=>updateCustomField(f.id, { value: html })}
-                        init={{ base_url: '/tinymce', suffix: '.min', menubar:false, height:250, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
+                        init={{ base_url: '/tinymce', suffix: '.min', menubar:false, height:250, browser_spellcheck: true, contextmenu: false, plugins:'link lists table', toolbar:'bold italic | bullist numlist | link table' }}
                       />
                     )}
                   </div>
