@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { Editor } from '@tinymce/tinymce-react'
 import { apiGet, apiPut } from '../../utils/fetcher'
 import AutocompletePopover, { type AcItem } from '../common/AutoCompletePopover'
+import { useTranslation } from '../../i18n'
 
 type Chapter = { id: string; title: string; content: string; position?: number }
 
@@ -15,6 +16,7 @@ interface ChapterEditorProps {
 type Suggestion = { id: string; type: 'character'|'place'|'item'|'event'; label: string; hint?: string | null }
 
 export default function ChapterEditor({ chapterId, onSaved, collectionId: collectionIdProp }: ChapterEditorProps) {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [content, setContent] = useState('')
   const [saving, setSaving] = useState(false)
@@ -99,15 +101,15 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
     return (
       <div className="space-y-2">
         <div className="flex gap-2">
-          <select className="border rounded px-2 py-1 text-sm" value={type} onChange={e=>setType(e.target.value as EntityType)}>
-            <option value="character">Personnage</option>
-            <option value="place">Lieu</option>
-            <option value="item">Objet</option>
-            <option value="event">Évènement</option>
+          <select className="border rounded px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={type} onChange={e=>setType(e.target.value as EntityType)}>
+            <option value="character">{t('editor.character')}</option>
+            <option value="place">{t('editor.place')}</option>
+            <option value="item">{t('editor.item')}</option>
+            <option value="event">{t('editor.event')}</option>
           </select>
           <input
-            className="flex-1 border rounded px-3 py-1.5 text-sm"
-            placeholder="Rechercher…"
+            className="flex-1 border rounded px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            placeholder={t('common.search')}
             value={q}
             onChange={e=>setQ(e.target.value)}
           />
@@ -116,26 +118,26 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
           ) : null}
         </div>
   
-        <div className="max-h-40 overflow-auto border rounded">
+        <div className="max-h-40 overflow-auto border rounded dark:border-gray-700">
           {loading ? (
-            <div className="p-2 text-sm text-gray-500">Recherche…</div>
+            <div className="p-2 text-sm text-gray-500 dark:text-gray-400">{t('editor.searching')}</div>
           ) : results.length ? (
             <ul className="divide-y">
               {results.map(r => (
                 <li key={r.type + r.id}>
                   <button
                     type="button"
-                    className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm"
+                    className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
                     onClick={()=> onChange({ type:r.type, id:r.id, label:r.label })}
                   >
                     <div className="font-medium">{r.label}</div>
-                    {r.hint ? <div className="text-xs text-gray-500">{r.hint}</div> : null}
+                    {r.hint ? <div className="text-xs text-gray-500 dark:text-gray-400">{r.hint}</div> : null}
                   </button>
                 </li>
               ))}
             </ul>
           ) : (
-            <div className="p-2 text-sm text-gray-500">Aucun résultat</div>
+            <div className="p-2 text-sm text-gray-500 dark:text-gray-400">Aucun résultat</div>
           )}
         </div>
       </div>
@@ -366,14 +368,14 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
     <div className="space-y-3">
       {/* barre locale du chapitre */}
       <div className="flex items-center gap-2 justify-between">
-        <div className="text-sm text-gray-500">Mode : {viewMode === 'edit' ? 'Édition' : 'Rendu'}</div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">{viewMode === 'edit' ? t('editor.modeEdit') : t('editor.modeRender')}</div>
         <button
           type="button"
           onClick={() => setPanelOpen(v => !v)}
           className="btn-secondary"
           aria-expanded={panelOpen}
         >
-          {panelOpen ? 'Masquer Notes & Analyse' : 'Afficher Notes & Analyse'}
+          {panelOpen ? t('editor.hideNotes') : t('editor.showNotes')}
         </button>
       </div>
 
@@ -444,8 +446,8 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
   
               // Boutons "Édition" et "Rendu"
               ed.ui.registry.addToggleButton('wvEditMode', {
-                text: 'Édition',
-                tooltip: 'Afficher les couleurs et le hint ⌃click',
+                text: t('editor.editing'),
+                tooltip: t('editor.showGizmos'),
                 onAction: () => setViewMode('edit'),
                 onSetup: (api: { setActive: (state: boolean) => void }) => {
                   api.setActive(viewModeRef.current === 'edit')
@@ -456,8 +458,8 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
               })
 
               ed.ui.registry.addToggleButton('wvRenderMode', {
-                text: 'Rendu',
-                tooltip: 'Masquer les gizmos de colorisation',
+                text: t('editor.render'),
+                tooltip: t('editor.hideGizmos'),
                 onAction: () => setViewMode('render'),
                 onSetup: (api: { setActive: (state: boolean) => void }) => {
                   api.setActive(viewModeRef.current === 'render')
@@ -468,8 +470,8 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
               })
 
               ed.ui.registry.addButton('wvAnnotate', {
-                text: 'Annoter',
-                tooltip: 'Créer/éditer une annotation sur la sélection',
+                text: t('editor.annotate'),
+                tooltip: t('editor.annotateTooltip'),
                 onAction: () => {
                   const sel = ed.selection
                   const node = sel.getNode() as HTMLElement
@@ -494,7 +496,7 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
                   const rng: Range = sel.getRng()
                   const textSel = sel.getContent({ format:'text' })?.trim() || ''
                   if (!rng || !textSel) {
-                    ed.notificationManager.open({ text:'Sélectionnez du texte à annoter.', type:'info', timeout: 2500 })
+                    ed.notificationManager.open({ text: t('editor.selectTextToAnnotate'), type:'info', timeout: 2500 })
                     return
                   }
                   setAnnMode('create')
@@ -618,16 +620,16 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
 
       {/* PANNEAU LATÉRAL */}
       {panelOpen && (
-        <aside className="border rounded-xl bg-white shadow-sm p-3 h-fit sticky top-4 self-start">
+        <aside className="border rounded-xl bg-white shadow-sm p-3 h-fit sticky top-4 self-start dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center gap-2 mb-2">
             <button
-              className={`text-sm px-2 py-1 rounded ${panelTab==='notes' ? 'bg-gray-900 text-white' : 'hover:bg-gray-50'}`}
+              className={`text-sm px-2 py-1 rounded ${panelTab==='notes' ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
               onClick={() => setPanelTab('notes')}
             >
               Notes
             </button>
             <button
-              className={`text-sm px-2 py-1 rounded ${panelTab==='analytics' ? 'bg-gray-900 text-white' : 'hover:bg-gray-50'}`}
+              className={`text-sm px-2 py-1 rounded ${panelTab==='analytics' ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
               onClick={() => setPanelTab('analytics')}
             >
               Analyse
@@ -640,17 +642,17 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 rows={10}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
+                className="w-full border rounded-lg px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 placeholder="Notes privées liées à ce chapitre (aide-mémoire, idées, TODOs…)"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Astuce : ces notes ne sont pas exportées dans le PDF.
               </p>
             </div>
           ) : (
             <div className="space-y-2">
               {analytics.length === 0 ? (
-                <p className="text-sm text-gray-500">Aucune entité détectée pour l’instant.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Aucune entité détectée pour l’instant.</p>
               ) : (
                 <ul className="space-y-1">
                   {analytics.map(e => (
@@ -673,14 +675,14 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
                       >
                         {e.label}
                       </span>
-                      <span className="ml-auto text-xs text-gray-500 tabular-nums">{e.count}×</span>
-                      <button className="text-xs text-indigo-600 hover:underline" onClick={() => jumpToEntity(e)}>voir</button>
-                      <button className="text-xs text-gray-700 hover:underline" onClick={() => openEntityView(e)}>ouvrir</button>
+                      <span className="ml-auto text-xs text-gray-500 dark:text-gray-400 tabular-nums">{e.count}×</span>
+                      <button className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline" onClick={() => jumpToEntity(e)}>voir</button>
+                      <button className="text-xs text-gray-700 dark:text-gray-300 hover:underline" onClick={() => openEntityView(e)}>ouvrir</button>
                     </li>
                   ))}
                 </ul>
               )}
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Comptage basé sur les entités insérées via l’autocomplétion.
               </p>
             </div>
@@ -690,20 +692,20 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
 
       {annOpen && (
         <div className="fixed inset-0 z-[100] bg-black/40 flex items-end sm:items-center justify-center p-3">
-          <div className="bg-white w-full max-w-xl rounded-xl shadow-xl overflow-hidden">
-            <div className="px-4 py-3 border-b flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-xl rounded-xl shadow-xl overflow-hidden">
+            <div className="px-4 py-3 border-b dark:border-gray-700 flex items-center gap-3">
               <div className="font-medium">{annMode === 'create' ? 'Nouvelle annotation' : 'Modifier l’annotation'}</div>
               <div className="ml-auto">
-                <button className="text-sm text-gray-500 hover:text-gray-700" onClick={()=>setAnnOpen(false)}>Fermer</button>
+                <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" onClick={()=>setAnnOpen(false)}>Fermer</button>
               </div>
             </div>
 
             <div className="p-4 space-y-4">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Note</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Note</label>
                 <textarea
                   rows={5}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  className="w-full border rounded-lg px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                   value={annDraft.note}
                   onChange={e=>setAnnDraft(d=>({...d, note:e.target.value}))}
                   placeholder="Texte libre lié à ce passage…"
@@ -713,10 +715,10 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
               {/* Lien entité */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-600">Lier une entité (optionnel)</label>
+                  <label className="text-sm text-gray-600 dark:text-gray-400">Lier une entité (optionnel)</label>
                   {annDraft.entity && (
-                    <span className="ml-auto text-xs px-2 py-0.5 rounded border">
-                      {annDraft.entity.label} <span className="text-gray-500">({annDraft.entity.type})</span>
+                    <span className="ml-auto text-xs px-2 py-0.5 rounded border dark:border-gray-600">
+                      {annDraft.entity.label} <span className="text-gray-500 dark:text-gray-400">({annDraft.entity.type})</span>
                     </span>
                   )}
                 </div>
@@ -729,7 +731,7 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
               </div>
             </div>
 
-            <div className="px-4 py-3 border-t flex items-center gap-2">
+            <div className="px-4 py-3 border-t dark:border-gray-700 flex items-center gap-2">
               {annDraft.entity && (
                 <button
                   type="button"
@@ -800,7 +802,7 @@ export default function ChapterEditor({ chapterId, onSaved, collectionId: collec
 
       <div className="flex justify-end">
         <button onClick={save} className="btn-primary" disabled={saving}>
-          {saving ? 'Enregistrement…' : 'Enregistrer le chapitre'}
+          {saving ? t('common.saving') : t('common.save')}
         </button>
       </div>
     </div>

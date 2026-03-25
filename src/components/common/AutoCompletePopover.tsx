@@ -36,7 +36,7 @@ export default function AutocompletePopover({ anchor, items, activeIndex, onHove
   return createPortal(
     <div
       ref={ref}
-      className="z-50 bg-white border rounded shadow-lg max-h-64 overflow-auto w-80"
+      className="z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg max-h-64 overflow-auto w-80"
       style={{ position: 'fixed', left: anchor.x, top: anchor.y }}
       role="listbox"
       aria-activedescendant={items[activeIndex]?.id}
@@ -46,14 +46,14 @@ export default function AutocompletePopover({ anchor, items, activeIndex, onHove
           key={`${s.type}-${s.id}`}
           role="option"
           aria-selected={i===activeIndex}
-          className={`flex gap-2 items-center px-3 py-2 cursor-pointer ${i===activeIndex ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
+          className={`flex gap-2 items-center px-3 py-2 cursor-pointer ${i===activeIndex ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
           onMouseEnter={() => onHover(i)}
           onMouseDown={(e) => { e.preventDefault(); onSelect(i) }} // mousedown pour éviter la perte de focus TinyMCE
         >
           <div className="shrink-0">{icon(s.type)}</div>
           <div className="min-w-0">
-            <div className="font-medium truncate">{s.label}</div>
-            {s.hint ? <div className="text-xs text-gray-500 truncate">{s.hint}</div> : null}
+            <div className="font-medium truncate dark:text-gray-100">{s.label}</div>
+            {s.hint ? <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{s.hint}</div> : null}
           </div>
           <div className="ml-auto text-xs text-gray-400 uppercase">{s.type}</div>
         </div>

@@ -5,11 +5,13 @@ import { Plus, Trash2, Edit3 } from 'lucide-react'
 import { CharacterForm } from './CharacterForm'
 import TagFilterPopover from '../common/TagFilterPopover'
 import { CharacterView } from './CharacterView'
+import { useTranslation } from '../../i18n'
 
 type Collection = { id: string; name: string }
 type Tag = { id: string; name: string; color?: string; note?: string }
 
 export function CharactersPage({ projectId }: { projectId: string }) {
+  const { t } = useTranslation()
   const [collections, setCollections] = useState<Collection[]>([])
   const [collectionId, setCollectionId] = useState<string | null>(null)
 
@@ -86,18 +88,18 @@ export function CharactersPage({ projectId }: { projectId: string }) {
     return (
       <article
         key={card.id}
-        className="relative group border rounded-xl bg-white p-4 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition"
+        className="relative group border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 p-4 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition"
         onClick={() => setViewingId(card.id)}
       >
         {/* Delete button */}
         <button
           onClick={(e) => { e.stopPropagation(); deleteCharacter(card.id) }}
           disabled={deletingId === card.id}
-          title="Supprimer ce personnage"
-          aria-label="Supprimer ce personnage"
+          title={t('characters.deleteCharacter')}
+          aria-label={t('characters.deleteCharacter')}
           className={[
-            "absolute top-2 right-2 p-1.5 rounded-full border text-red-600 bg-white/95",
-            "hover:bg-red-50 hover:border-red-300 shadow-sm",
+            "absolute top-2 right-2 p-1.5 rounded-full border text-red-600 bg-white/95 dark:bg-gray-700/95",
+            "hover:bg-red-50 dark:hover:bg-red-900/30 hover:border-red-300 shadow-sm",
             "transition-opacity",
             "opacity-100",
             "sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100",
@@ -116,9 +118,9 @@ export function CharactersPage({ projectId }: { projectId: string }) {
 
         <button
           onClick={(e) => { e.stopPropagation(); setEditingId(card.id) }}
-          title="Éditer ce personnage"
-          aria-label="Éditer ce personnage"
-          className="absolute top-2 right-10 p-1.5 rounded-full border bg-white/95 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+          title={t('characters.editCharacter')}
+          aria-label={t('characters.editCharacter')}
+          className="absolute top-2 right-10 p-1.5 rounded-full border border-gray-200 dark:border-gray-600 bg-white/95 dark:bg-gray-700/95 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 shadow-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
         >
           <Edit3 className="w-4 h-4" />
         </button>
@@ -176,17 +178,17 @@ export function CharactersPage({ projectId }: { projectId: string }) {
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
         <select
-          className="border rounded px-3 py-2"
+          className="border border-gray-200 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-800 dark:text-gray-100"
           value={collectionId ?? ''}
           onChange={e => setCollectionId(e.target.value || null)}
         >
-          <option value="" disabled>Choisir une collection</option>
+          <option value="" disabled>{t('characters.chooseCollection')}</option>
           {collections.map(co => <option key={co.id} value={co.id}>{co.name}</option>)}
         </select>
 
         <input
-          className="border rounded px-3 py-2 flex-1 min-w-[200px]"
-          placeholder="Rechercher…"
+          className="border border-gray-200 dark:border-gray-600 rounded px-3 py-2 flex-1 min-w-[200px] bg-white dark:bg-gray-800 dark:text-gray-100"
+          placeholder={t('common.search')}
           value={q}
           onChange={e => setQ(e.target.value)}
         />
@@ -201,20 +203,20 @@ export function CharactersPage({ projectId }: { projectId: string }) {
 
         {/* Correspondance (OR/AND) */}
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-700">Correspondance</label>
+          <label className="text-sm text-gray-700">{t('characters.matchMode')}</label>
           <select
             className="border rounded px-2 py-2"
             value={matchMode}
             onChange={e => setMatchMode(e.target.value as 'any'|'all')}
           >
-            <option value="any">Au moins un</option>
-            <option value="all">Tous</option>
+            <option value="any">{t('characters.atLeastOne')}</option>
+            <option value="all">{t('characters.all')}</option>
           </select>
         </div>
 
         {/* Regroupement par annotation */}
         <div className="ml-auto flex items-center gap-2">
-          <label className="text-sm text-gray-700">Regrouper par annotation</label>
+          <label className="text-sm text-gray-700">{t('characters.groupByAnnotation')}</label>
           <select
             className="border rounded px-2 py-2"
             value={groupNote}
@@ -225,7 +227,7 @@ export function CharactersPage({ projectId }: { projectId: string }) {
           </select>
 
           <button onClick={createCharacter} className="btn-primary inline-flex items-center gap-1">
-            <Plus className="w-4 h-4" /> Nouveau personnage
+            <Plus className="w-4 h-4" /> {t('characters.newCharacter')}
           </button>
         </div>
       </div>

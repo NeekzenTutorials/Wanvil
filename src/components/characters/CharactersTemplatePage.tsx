@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { apiGet } from '../../utils/fetcher'
 import { TemplateEditor } from './TemplateEditor'
+import { useTranslation } from '../../i18n'
 
 type Collection = { id: string; name: string }
 
 export function CharactersTemplatePage({ projectId }: { projectId: string }) {
+  const { t } = useTranslation()
   const [collections, setCollections] = useState<Collection[]>([])
   const [collectionId, setCollectionId] = useState<string | null>(null)
 
@@ -19,11 +21,11 @@ export function CharactersTemplatePage({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <label className="text-sm text-gray-600">Collection</label>
+        <label className="text-sm text-gray-600 dark:text-gray-400">{t('tags.collection')}</label>
         <select
           value={collectionId ?? ''}
           onChange={(e) => setCollectionId(e.target.value || null)}
-          className="border rounded px-3 py-2"
+          className="border border-gray-200 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-800 dark:text-gray-100"
         >
           {collections.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>

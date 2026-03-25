@@ -1,6 +1,7 @@
 // src/components/places/PlacesForm.tsx
 import { useEffect, useState } from 'react'
 import { apiGet, apiPut } from '../../utils/fetcher'
+import { useTranslation } from '../../i18n'
 import { Editor } from '@tinymce/tinymce-react'
 
 type Tag = { id:string; name:string; color?:string }
@@ -13,6 +14,7 @@ type CustomField = {
 }
 
 export function PlacesForm({ placeId, collectionId, onClose }:{ placeId:string, collectionId:string, onClose:()=>void }) {
+  const { t } = useTranslation()
   const [data, setData] = useState<any>(null) // { name, location, description, images, content, tags }
   const [allTags, setAllTags] = useState<Tag[]>([])
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
@@ -68,24 +70,24 @@ export function PlacesForm({ placeId, collectionId, onClose }:{ placeId:string, 
 
   return (
     <div className="fixed inset-0 bg-black/40 flex">
-      <div className="ml-auto h-full w-full max-w-3xl bg-white flex flex-col">
-        <div className="p-4 border-b flex items-center gap-2">
-          <h3 className="font-semibold">Éditer {data.name}</h3>
+      <div className="ml-auto h-full w-full max-w-3xl bg-white dark:bg-gray-800 flex flex-col">
+        <div className="p-4 border-b dark:border-gray-700 flex items-center gap-2">
+          <h3 className="font-semibold">{t('common.edit')} {data.name}</h3>
           <div className="ml-auto flex gap-2">
-            <button className="btn-secondary" onClick={onClose}>Annuler</button>
-            <button className="btn-primary" onClick={save}>Enregistrer</button>
+            <button className="btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
+            <button className="btn-primary" onClick={save}>{t('common.save')}</button>
           </div>
         </div>
 
         <div className="p-4 space-y-6 overflow-y-auto">
           {/* Champs de base */}
           <div className="grid sm:grid-cols-2 gap-3">
-            <input className="border rounded px-3 py-2" placeholder="Nom du lieu" value={data.name || ''} onChange={e=>setData((p:any)=>({...p, name:e.target.value}))}/>
-            <input className="border rounded px-3 py-2" placeholder="Localisation" value={data.location || ''} onChange={e=>setData((p:any)=>({...p, location:e.target.value}))}/>
+            <input className="border dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 dark:text-gray-100" placeholder="Nom du lieu" value={data.name || ''} onChange={e=>setData((p:any)=>({...p, name:e.target.value}))}/>
+            <input className="border dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 dark:text-gray-100" placeholder="Localisation" value={data.location || ''} onChange={e=>setData((p:any)=>({...p, location:e.target.value}))}/>
           </div>
 
           <div className="space-y-1">
-            <div className="text-sm font-medium text-gray-700">Description</div>
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</div>
             <Editor
               licenseKey='gpl'
               tinymceScriptSrc="/tinymce/tinymce.min.js"
@@ -97,20 +99,20 @@ export function PlacesForm({ placeId, collectionId, onClose }:{ placeId:string, 
 
           {/* Tags */}
           <div className="space-y-1">
-            <div className="text-sm font-medium text-gray-700">Tags</div>
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Tags</div>
             <div className="flex gap-2 flex-wrap">
-              {allTags.map(t => {
-                const on = selectedTagIds.includes(t.id)
+              {allTags.map(tag => {
+                const on = selectedTagIds.includes(tag.id)
                 return (
                   <button
-                    key={t.id}
+                    key={tag.id}
                     type="button"
-                    onClick={()=>toggleTag(t.id)}
+                    onClick={()=>toggleTag(tag.id)}
                     className={`px-2 py-1 rounded border text-sm ${on ? 'bg-gray-900 text-white' : ''}`}
-                    title={(t as any).note || undefined}
-                    style={{ borderColor: t.color || '#e5e7eb', backgroundColor: on ? (t.color || '#111827') : undefined }}
+                    title={(tag as any).note || undefined}
+                    style={{ borderColor: tag.color || '#e5e7eb', backgroundColor: on ? (tag.color || '#111827') : undefined }}
                   >
-                    {t.name}
+                    {tag.name}
                   </button>
                 )
               })}
@@ -119,9 +121,9 @@ export function PlacesForm({ placeId, collectionId, onClose }:{ placeId:string, 
 
           {/* Images */}
           <div className="space-y-2">
-            <div className="text-sm font-medium text-gray-700">Images</div>
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Images</div>
             <div className="flex gap-2">
-              <input id="img-url" type="url" placeholder="URL d’image" className="border rounded px-3 py-2 flex-1"/>
+              <input id="img-url" type="url" placeholder="URL d'image" className="border dark:border-gray-600 rounded px-3 py-2 flex-1 dark:bg-gray-700 dark:text-gray-100"/>
               <button className="btn-secondary" onClick={()=>{
                 const el = document.getElementById('img-url') as HTMLInputElement
                 addImage(el.value)
@@ -132,27 +134,27 @@ export function PlacesForm({ placeId, collectionId, onClose }:{ placeId:string, 
               {(data.images || []).map((url:string, i:number) => (
                 <figure key={i} className="relative group">
                   <img src={url} alt="" className="w-full h-24 object-cover rounded border" />
-                  <button className="absolute top-1 right-1 text-xs px-1.5 py-0.5 bg-white/90 border rounded opacity-0 group-hover:opacity-100" onClick={()=>removeImage(i)}>Suppr</button>
+                  <button className="absolute top-1 right-1 text-xs px-1.5 py-0.5 bg-white/90 dark:bg-gray-800/90 border dark:border-gray-600 rounded opacity-0 group-hover:opacity-100" onClick={()=>removeImage(i)}>Suppr</button>
                 </figure>
               ))}
-              {!((data.images||[]).length) && <div className="text-xs text-gray-400">Aucune image.</div>}
+              {!((data.images||[]).length) && <div className="text-xs text-gray-400 dark:text-gray-500">Aucune image.</div>}
             </div>
           </div>
 
           {/* Champs personnalisés par lieu */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="text-sm font-medium text-gray-700">Champs personnalisés</div>
+              <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Champs personnalisés</div>
               <button className="btn-secondary" onClick={addCustomField}>Ajouter un champ</button>
             </div>
 
             <ul className="space-y-3">
               {customFields.map((f) => (
-                <li key={f.id} className="border rounded-xl p-3">
+                <li key={f.id} className="border dark:border-gray-700 rounded-xl p-3">
                   <div className="grid sm:grid-cols-[1fr_180px_auto] gap-2 items-start">
-                    <input className="border rounded px-3 py-2" placeholder="Libellé" value={f.label}
+                    <input className="border dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 dark:text-gray-100" placeholder="Libellé" value={f.label}
                            onChange={e=>updateCustomField(f.id, { label: e.target.value })}/>
-                    <select className="border rounded px-3 py-2" value={f.type}
+                    <select className="border dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 dark:text-gray-100" value={f.type}
                             onChange={e=>updateCustomField(f.id, { type: e.target.value as CustomField['type'] })}>
                       <option value="text">Texte</option>
                       <option value="textarea">Paragraphe</option>
@@ -161,25 +163,25 @@ export function PlacesForm({ placeId, collectionId, onClose }:{ placeId:string, 
                       <option value="richtext">Texte riche</option>
                     </select>
                     <div className="flex justify-end">
-                      <button className="btn-danger" onClick={()=>removeCustomField(f.id)}>Supprimer</button>
+                      <button className="btn-danger" onClick={()=>removeCustomField(f.id)}>{t('common.delete')}</button>
                     </div>
                   </div>
 
                   <div className="mt-2">
                     {f.type === 'text' && (
-                      <input className="border rounded px-3 py-2 w-full" value={f.value || ''}
+                      <input className="border dark:border-gray-600 rounded px-3 py-2 w-full dark:bg-gray-700 dark:text-gray-100" value={f.value || ''}
                              onChange={e=>updateCustomField(f.id, { value: e.target.value })}/>
                     )}
                     {f.type === 'textarea' && (
-                      <textarea className="border rounded px-3 py-2 w-full" rows={4} value={f.value || ''}
+                      <textarea className="border dark:border-gray-600 rounded px-3 py-2 w-full dark:bg-gray-700 dark:text-gray-100" rows={4} value={f.value || ''}
                                 onChange={e=>updateCustomField(f.id, { value: e.target.value })}/>
                     )}
                     {f.type === 'number' && (
-                      <input type="number" className="border rounded px-3 py-2 w-full" value={f.value ?? ''}
+                      <input type="number" className="border dark:border-gray-600 rounded px-3 py-2 w-full dark:bg-gray-700 dark:text-gray-100" value={f.value ?? ''}
                              onChange={e=>updateCustomField(f.id, { value: e.target.value ? Number(e.target.value) : null })}/>
                     )}
                     {f.type === 'date' && (
-                      <input type="date" className="border rounded px-3 py-2 w-full" value={f.value || ''}
+                      <input type="date" className="border dark:border-gray-600 rounded px-3 py-2 w-full dark:bg-gray-700 dark:text-gray-100" value={f.value || ''}
                              onChange={e=>updateCustomField(f.id, { value: e.target.value || null })}/>
                     )}
                     {f.type === 'richtext' && (
@@ -194,7 +196,7 @@ export function PlacesForm({ placeId, collectionId, onClose }:{ placeId:string, 
                   </div>
                 </li>
               ))}
-              {!customFields.length && <li className="text-sm text-gray-500">Aucun champ pour l’instant.</li>}
+              {!customFields.length && <li className="text-sm text-gray-500 dark:text-gray-400">Aucun champ pour l'instant.</li>}
             </ul>
           </div>
         </div>

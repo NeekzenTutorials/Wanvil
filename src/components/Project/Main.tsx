@@ -16,7 +16,10 @@ import { EventsTagsManagerPage } from '../events/EventsTagsManagerPage'
 import { AnalyticsPage } from '../analytics/AnalyticsPage'
 import { ChronologyPage } from '../chronology/ChronologyPage'
 import { MapEditorPage } from '../gameDesign/mapEditor/MapEditorPage'
+import { TaskBoardPage } from '../gameDesign/taskBoard/TaskBoardPage'
 import { GameDesignCatalog } from '../gameDesign/GameDesignCatalog'
+import SettingsPage from '../settings/SettingsPage'
+import { useTranslation } from '../../i18n'
 
 interface Props {
   active: SidebarSections
@@ -31,15 +34,25 @@ interface Props {
 }
 
 export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refreshTree, projectId, activeGameDesignComponent, activeGdRecordId, enabledGdComponents = [], onAddGameDesignComponent }) => {
+  const { t } = useTranslation()
+
+  if (active === 'settings') {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
+        <SettingsPage />
+      </main>
+    )
+  }
+
   if (active === 'redaction') {
     return (
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
         {selected ? (
           <NodeDetails selected={selected} onRefreshHierarchy={refreshTree}/>
         ) : (
           <DefaultPage
-            title="Rédaction"
-            description="Sélectionnez une collection, une saga ou un tome dans la colonne de gauche."
+            title={t('main.writingTitle')}
+            description={t('main.writingDesc')}
           />
         )}
       </main>
@@ -48,7 +61,7 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
 
   if (active === 'characters') {
     return (
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
         {charactersView === 'list' ? (
           <CharactersPage projectId={projectId} />
         ) : charactersView === 'template' ? (
@@ -62,36 +75,36 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
 
   if (active === 'lore-places') {
     return (
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
         <PlacesPage projectId={projectId} />
       </main>
     )
   }
   if (active === 'lore-places-tags') {
     return (
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
         <PlacesTagsManagerPage projectId={projectId} />
       </main>
     )
   }
 
   if (active === 'lore-items') {
-    return (<main className="flex-1 p-8 overflow-y-auto"><ItemsPage projectId={projectId} /></main>)
+    return (<main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900"><ItemsPage projectId={projectId} /></main>)
   }
   if (active === 'lore-items-tags') {
-    return (<main className="flex-1 p-8 overflow-y-auto"><ItemsTagsManagerPage projectId={projectId} /></main>)
+    return (<main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900"><ItemsTagsManagerPage projectId={projectId} /></main>)
   }
 
   if (active === 'lore-events') {
     return (
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
         <EventsPage projectId={projectId} />
       </main>
     )
   }
   if (active === 'lore-events-tags') {
     return (
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
         <EventsTagsManagerPage projectId={projectId} />
       </main>
     )
@@ -99,7 +112,7 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
 
   if (active === 'analytics') {
     return (
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
         <AnalyticsPage projectId={projectId} />
       </main>
     )
@@ -107,7 +120,7 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
 
   if (active === 'chronology') {
     return (
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
         <ChronologyPage projectId={projectId} />
       </main>
     )
@@ -115,7 +128,7 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
 
   if (active === 'game-design-catalog') {
     return (
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
         <GameDesignCatalog
           enabledComponents={enabledGdComponents}
           onAdd={(c) => onAddGameDesignComponent?.(c)}
@@ -127,16 +140,23 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
   if (active === 'game-design') {
     if (activeGameDesignComponent === 'map-editor' && activeGdRecordId) {
       return (
-        <main className="flex-1 p-4 overflow-hidden flex flex-col">
+        <main className="flex-1 p-4 overflow-hidden flex flex-col dark:bg-gray-900">
           <MapEditorPage projectId={projectId} componentRecordId={activeGdRecordId} />
         </main>
       )
     }
+    if (activeGameDesignComponent === 'task-board' && activeGdRecordId) {
+      return (
+        <main className="flex-1 p-4 overflow-hidden flex flex-col dark:bg-gray-900">
+          <TaskBoardPage projectId={projectId} componentRecordId={activeGdRecordId} />
+        </main>
+      )
+    }
     return (
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
         <DefaultPage
-          title="Game Design"
-          description="Sélectionnez un composant dans la barre latérale, ou ajoutez-en un avec le bouton +."
+          title={t('main.gameDesignTitle')}
+          description={t('main.gameDesignDesc')}
         />
       </main>
     )
@@ -146,10 +166,10 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
 
   // Autres onglets non implémentés
   return (
-    <main className="flex-1 p-8 overflow-y-auto">
+    <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
       <DefaultPage
-        title="Bientôt disponible"
-        description="Cette section n'est pas encore implémentée. Revenez bientôt !"
+        title={t('main.comingSoonTitle')}
+        description={t('main.comingSoonDesc')}
       />
     </main>
   )

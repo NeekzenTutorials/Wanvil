@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { apiGet } from '../../utils/fetcher'
+import { useTranslation } from '../../i18n'
 import {
   Loader2, RefreshCw, Download, SlidersHorizontal
 } from 'lucide-react'
@@ -90,10 +91,10 @@ function groupCounts<T extends string>(arr:T[]){
 
 /* -------------------- UI Helpers -------------------- */
 const MetricCard = ({ label, value, sub }: { label: string; value: string; sub?: string }) => (
-  <div className="bg-white rounded-xl shadow-sm p-4 border">
-    <div className="text-xs uppercase tracking-wide text-gray-500">{label}</div>
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border dark:border-gray-700">
+    <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</div>
     <div className="text-2xl font-semibold">{value}</div>
-    {sub && <div className="text-xs text-gray-400 mt-1">{sub}</div>}
+    {sub && <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">{sub}</div>}
   </div>
 )
 
@@ -226,6 +227,7 @@ const COL = {
 
 /* -------------------------- Page -------------------------- */
 export function AnalyticsPage({ projectId }:{ projectId:string }) {
+  const { t } = useTranslation()
   const [collections, setCollections] = useState<Collection[]>([])
   const [collectionId, setCollectionId] = useState<string>('')
   const [loading, setLoading] = useState(false)
@@ -335,7 +337,7 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
       setRows(out)
       setTomeFilter('') // reset filtre tome à chaque collection
     } catch (e:any) {
-      setError(e?.message || 'Chargement impossible')
+      setError(e?.message || t('analytics.loadError'))
     } finally {
       setLoading(false)
     }
@@ -365,7 +367,7 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
   const perTome = useMemo(() => {
     if (!tomeFilter) return perTomeRaw
     // si scope sur un tome précis, on garde quand même sa carte "Mots par tome" (utile)
-    return perTomeRaw.filter(t => t.tomeId === tomeFilter)
+    return perTomeRaw.filter(tome => tome.tomeId === tomeFilter)
   }, [perTomeRaw, tomeFilter])
 
   const histogramData = useMemo(
@@ -428,7 +430,7 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `analytics_${collectionId}${tomeFilter ? '_'+perTomeRaw.find(t=>t.tomeId===tomeFilter)?.tomeName : ''}.csv`
+    a.download = `analytics_${collectionId}${tomeFilter ? '_'+perTomeRaw.find(tome=>tome.tomeId===tomeFilter)?.tomeName : ''}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -441,22 +443,22 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <select
-            className="border rounded-lg px-3 py-2"
+            className="border dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-gray-100"
             value={collectionId}
             onChange={(e)=> { setCollectionId(e.target.value); setRows([]); }}
           >
-            <option value="">Choisir une collection</option>
+            <option value="">{t('analytics.chooseCollection')}</option>
             {collections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
 
           <select
-            className="border rounded-lg px-3 py-2"
+            className="border dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-gray-100"
             value={tomeFilter}
             onChange={(e)=> setTomeFilter(e.target.value)}
             disabled={!rows.length}
-            title="Filtrer par tome"
+            title={t('analytics.filterByTome')}
           >
-            <option value="">Tous les tomes</option>
+            <option value="">{t('analytics.allTomes')}</option>
             {perTomeRaw.map(t => <option key={t.tomeId} value={t.tomeId}>{t.tomeName}</option>)}
           </select>
 
@@ -467,43 +469,43 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
             title="Recalculer maintenant"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-            Recalculer
+            {t('analytics.recalculate')}
           </button>
 
           <button
-            className="inline-flex items-center gap-2 border rounded-lg px-3 py-2 hover:bg-gray-50"
+            className="inline-flex items-center gap-2 border dark:border-gray-600 rounded-lg px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
             onClick={exportCSV}
             disabled={!rows.length}
             title="Exporter CSV"
           >
             <Download className="w-4 h-4" />
-            Export CSV
+            {t('analytics.exportCsv')}
           </button>
         </div>
       </header>
 
       {!collectionId ? (
-        <p className="text-sm text-gray-500">Sélectionnez une collection pour afficher ses métriques.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t('analytics.selectCollection')}</p>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : rows.length === 0 && loading ? (
-        <p className="text-sm text-gray-500">Calcul en cours…</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t('analytics.computing')}</p>
       ) : (
         <>
           {/* SEGMENTED TABS */}
-          <div className="inline-flex rounded-xl border bg-white shadow-sm overflow-hidden">
+          <div className="inline-flex rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
             {[
-              {k:'overview',  label:'Aperçu'},
-              {k:'entities',  label:'Entités'},
-              {k:'vocab',     label:'Vocabulaire'},
-              {k:'chapters',  label:'Chapitres'},
-            ].map(t => (
+              {k:'overview',  label: t('analytics.overview')},
+              {k:'entities',  label: t('analytics.entities')},
+              {k:'vocab',     label: t('analytics.vocabulary')},
+              {k:'chapters',  label: t('analytics.chapters')},
+            ].map(tab => (
               <button
-                key={t.k}
-                onClick={() => setActiveTab(t.k as any)}
-                className={`px-4 py-2 text-sm ${activeTab===t.k ? 'bg-gray-900 text-white' : 'hover:bg-gray-50'}`}
+                key={tab.k}
+                onClick={() => setActiveTab(tab.k as any)}
+                className={`px-4 py-2 text-sm ${activeTab===tab.k ? 'bg-gray-900 text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
               >
-                {t.label}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -513,35 +515,35 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
             <>
               {/* METRICS */}
               <section className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                <MetricCard label="Chapitres" value={totalChapters.toString()} sub={tomeFilter ? 'dans ce tome' : undefined}/>
-                <MetricCard label="Mots (total)" value={totalWords.toLocaleString()} />
+                <MetricCard label={t('analytics.chapters')} value={totalChapters.toString()} sub={tomeFilter ? t('analytics.inThisTome') : undefined}/>
+                <MetricCard label={t('analytics.totalWords')} value={totalWords.toLocaleString()} />
                 <MetricCard
-                  label="Mots / chapitre"
+                  label={t('analytics.wordsPerChapter')}
                   value={totalChapters ? Math.round(totalWords/totalChapters).toLocaleString() : '—'}
                 />
                 <MetricCard
-                  label="Tomes"
+                  label={t('analytics.tomes')}
                   value={perTomeRaw.length.toString()}
-                  sub={tomeFilter ? perTomeRaw.find(t=>t.tomeId===tomeFilter)?.tomeName : 'répartition ci-dessous'}
+                  sub={tomeFilter ? perTomeRaw.find(tome=>tome.tomeId===tomeFilter)?.tomeName : t('analytics.distributionBelow')}
                 />
               </section>
 
               {/* CHARTS */}
               <section className="grid gap-6 grid-cols-1 xl:grid-cols-2">
-                <div className="border rounded-xl bg-white shadow-sm p-4">
-                  <div className="text-sm font-medium text-gray-700 mb-2">
-                    Progression cumulée (mots)
+                <div className="border dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm p-4">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('analytics.cumulativeProgress')}
                   </div>
                   {cumulative.length ? (
                     <LineChart data={cumulative} color={COL.sky} unit="mots" />
                   ) : (
-                    <p className="text-sm text-gray-500">Aucune donnée.</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('analytics.noData')}</p>
                   )}
                 </div>
 
-                <div className="border rounded-xl bg-white shadow-sm p-4">
-                  <div className="text-sm font-medium text-gray-700 mb-2">
-                    Distribution des longueurs de chapitres
+                <div className="border dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm p-4">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('analytics.chapterLengthDist')}
                   </div>
                   <BarChart
                     data={histogramData.map(d => ({ ...d, color: COL.indigo }))}
@@ -549,16 +551,15 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
                     showValues={histogramData.length <= 20}
                     color={COL.indigo}
                   />
-                  <p className="mt-2 text-xs text-gray-500">
-                    Chaque barre indique le <em>nombre de chapitres</em> dont le nombre de mots
-                    est dans l’intervalle indiqué.
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    {t('analytics.chapterLengthDesc')}
                   </p>
                 </div>
 
-                <div className="border rounded-xl bg-white shadow-sm p-4 xl:col-span-2">
-                  <div className="text-sm font-medium text-gray-700 mb-2">Mots par tome</div>
+                <div className="border dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm p-4 xl:col-span-2">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('analytics.wordsByTome')}</div>
                   <BarChart
-                    data={perTome.map(t => ({ label: t.tomeName, value: t.words, color: COL.slate }))}
+                    data={perTome.map(tome => ({ label: tome.tomeName, value: tome.words, color: COL.slate }))}
                     unit="mots"
                     showValues={perTome.length <= 16}
                     color={COL.slate}
@@ -571,8 +572,8 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
           {/* --------- ENTITÉS --------- */}
           {activeTab === 'entities' && (
             <section className="grid gap-6 grid-cols-1 xl:grid-cols-2">
-              <div className="border rounded-xl bg-white shadow-sm p-4">
-                <div className="text-sm font-medium text-gray-700 mb-2">Personnages les plus mentionnés</div>
+              <div className="border dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm p-4">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('analytics.mostCitedCharacters')}</div>
                 <BarChart
                   data={topEntities('character').map(x => ({ label:x.label, value:x.value, color: COL.rose }))}
                   unit="mentions"
@@ -581,8 +582,8 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
                 />
               </div>
 
-              <div className="border rounded-xl bg-white shadow-sm p-4">
-                <div className="text-sm font-medium text-gray-700 mb-2">Lieux les plus mentionnés</div>
+              <div className="border dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm p-4">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('analytics.mostCitedPlaces')}</div>
                 <BarChart
                   data={topEntities('place').map(x => ({ label:x.label, value:x.value, color: COL.emerald }))}
                   unit="mentions"
@@ -591,8 +592,8 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
                 />
               </div>
 
-              <div className="border rounded-xl bg-white shadow-sm p-4">
-                <div className="text-sm font-medium text-gray-700 mb-2">Objets les plus mentionnés</div>
+              <div className="border dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm p-4">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('analytics.mostCitedItems')}</div>
                 <BarChart
                   data={topEntities('item').map(x => ({ label:x.label, value:x.value, color: COL.amber }))}
                   unit="mentions"
@@ -601,8 +602,8 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
                 />
               </div>
 
-              <div className="border rounded-xl bg-white shadow-sm p-4">
-                <div className="text-sm font-medium text-gray-700 mb-2">Évènements les plus mentionnés</div>
+              <div className="border dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm p-4">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('analytics.mostCitedEvents')}</div>
                 <BarChart
                   data={topEntities('event').map(x => ({ label:x.label, value:x.value, color: COL.violet }))}
                   unit="mentions"
@@ -615,13 +616,13 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
 
           {/* --------- VOCABULAIRE --------- */}
           {activeTab === 'vocab' && (
-            <section className="border rounded-xl bg-white shadow-sm p-4">
+            <section className="border dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm p-4">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-700">Mots les plus utilisés (stopwords FR exclus)</div>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('analytics.topWords')}</div>
+                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                   <SlidersHorizontal className="w-4 h-4" />
                   <label className="flex items-center gap-2">
-                    Limite :
+                    {t('analytics.limit')}
                     <input type="range" min={10} max={100} step={2}
                            value={vocabLimit}
                            onChange={e => setVocabLimit(parseInt(e.target.value))}
@@ -633,60 +634,60 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
               {topWordsScoped.length ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {topWordsScoped.map(w => (
-                    <div key={w.label} className="flex items-center justify-between border rounded px-2 py-1 text-sm bg-white">
+                    <div key={w.label} className="flex items-center justify-between border dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800">
                       <span className="truncate">{w.label}</span>
-                      <span className="text-gray-500 tabular-nums">{w.value}</span>
+                      <span className="text-gray-500 dark:text-gray-400 tabular-nums">{w.value}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">Aucune donnée disponible.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('analytics.noDataAvailable')}</p>
               )}
             </section>
           )}
 
           {/* --------- CHAPITRES (table) --------- */}
           {activeTab === 'chapters' && (
-            <section className="border rounded-xl bg-white shadow-sm">
+            <section className="border dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm">
               <div className="p-4 flex flex-wrap items-center gap-3">
-                <div className="text-sm font-medium">Détails par chapitre</div>
+                <div className="text-sm font-medium">{t('analytics.chapterDetails')}</div>
                 <input
-                  className="ml-auto border rounded px-3 py-2 text-sm"
-                  placeholder="Filtrer par titre ou tome…"
+                  className="ml-auto border dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-800 dark:text-gray-100"
+                  placeholder={t('analytics.filterByTitle')}
                   value={search}
                   onChange={e=>setSearch(e.target.value)}
                 />
                 <select
-                  className="border rounded px-3 py-2 text-sm"
+                  className="border dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-800 dark:text-gray-100"
                   value={sortKey}
                   onChange={e=>setSortKey(e.target.value as any)}
                 >
-                  <option value="position">Tri&nbsp;: Position</option>
-                  <option value="wordCount">Tri&nbsp;: Mots</option>
-                  <option value="title">Tri&nbsp;: Titre</option>
+                  <option value="position">{t('analytics.sortPosition')}</option>
+                  <option value="wordCount">{t('analytics.sortWords')}</option>
+                  <option value="title">{t('analytics.sortTitle')}</option>
                 </select>
                 <select
-                  className="border rounded px-3 py-2 text-sm"
+                  className="border dark:border-gray-600 rounded px-3 py-2 text-sm dark:bg-gray-800 dark:text-gray-100"
                   value={sortDir}
                   onChange={e=>setSortDir(e.target.value as any)}
                 >
-                  <option value="asc">Ascendant</option>
-                  <option value="desc">Descendant</option>
+                  <option value="asc">{t('analytics.ascending')}</option>
+                  <option value="desc">{t('analytics.descending')}</option>
                 </select>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="text-left text-gray-500 border-y">
-                      <th className="px-4 py-2">Tome</th>
-                      <th className="px-4 py-2">Chapitre</th>
-                      <th className="px-4 py-2 text-right">Mots</th>
-                      <th className="px-4 py-2">Top entités</th>
+                    <tr className="text-left text-gray-500 dark:text-gray-400 border-y dark:border-gray-700">
+                      <th className="px-4 py-2">{t('analytics.tome')}</th>
+                      <th className="px-4 py-2">{t('analytics.chapter')}</th>
+                      <th className="px-4 py-2 text-right">{t('analytics.words')}</th>
+                      <th className="px-4 py-2">{t('analytics.topEntities')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredRows.map(r => (
-                      <tr key={r.chapterId} className="border-b hover:bg-gray-50">
+                      <tr key={r.chapterId} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-4 py-2">{r.tomeName}</td>
                         <td className="px-4 py-2">
                           {(r.position ? `#${r.position} — ` : '') + r.chapterTitle}
@@ -704,14 +705,14 @@ export function AnalyticsPage({ projectId }:{ projectId:string }) {
                               </span>
                             ))}
                             {r.entities.length > 5 && (
-                              <span className="text-xs text-gray-500">+{r.entities.length-5}</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">+{r.entities.length-5}</span>
                             )}
                           </div>
                         </td>
                       </tr>
                     ))}
                     {!filteredRows.length && (
-                      <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">Aucun chapitre trouvé.</td></tr>
+                      <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">{t('analytics.noChapterFound')}</td></tr>
                     )}
                   </tbody>
                 </table>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiGet } from '../../utils/fetcher'
+import { useTranslation } from '../../i18n'
 import ModalPortal from '../common/ModalPortal'
 
 type Tag = { id:string; name:string; color?:string; note?:string }
@@ -10,6 +11,7 @@ export function EventView({ eventId, onClose, onEdit }:{
   onClose: () => void
   onEdit?: (id:string)=>void
 }) {
+  const { t } = useTranslation()
   const [data, setData] = useState<any>(null)
   useEffect(() => { apiGet<any>(`events/${eventId}`).then(setData) }, [eventId])
   if (!data) return null
@@ -20,25 +22,25 @@ export function EventView({ eventId, onClose, onEdit }:{
   return (
     <ModalPortal>
       <div className="fixed inset-0 z-[9999] bg-black/40 flex">
-        <div className="ml-auto h-full w-full max-w-3xl bg-white flex flex-col">
-          <div className="p-4 border-b flex items-center gap-2">
+        <div className="ml-auto h-full w-full max-w-3xl bg-white dark:bg-gray-800 flex flex-col">
+          <div className="p-4 border-b dark:border-gray-700 flex items-center gap-2">
             <h3 className="font-semibold">Évènement : {data.name}</h3>
             <div className="ml-auto flex gap-2">
-              {onEdit && <button className="btn-secondary" onClick={()=>onEdit(eventId)}>Éditer</button>}
+              {onEdit && <button className="btn-secondary" onClick={()=>onEdit(eventId)}>{t('common.edit')}</button>}
               <button className="btn-primary" onClick={onClose}>Fermer</button>
             </div>
           </div>
 
           <div className="p-4 space-y-6 overflow-y-auto">
-            <div className="text-sm text-gray-600">Dates : <span className="font-medium">{dates}</span></div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Dates : <span className="font-medium">{dates}</span></div>
 
             <div className="flex gap-1 flex-wrap">
-              {(data.tags || []).map((t:Tag) => (
-                <span key={t.id}
+              {(data.tags || []).map((tag:Tag) => (
+                <span key={tag.id}
                       className="text-xs px-2 py-0.5 rounded border"
-                      style={{ borderColor: t.color || '#e5e7eb', backgroundColor: t.color ? t.color + '22' : undefined }}
-                      title={t.note || undefined}>
-                  {t.name}
+                      style={{ borderColor: tag.color || '#e5e7eb', backgroundColor: tag.color ? tag.color + '22' : undefined }}
+                      title={tag.note || undefined}>
+                  {tag.name}
                 </span>
               ))}
             </div>
@@ -47,12 +49,12 @@ export function EventView({ eventId, onClose, onEdit }:{
               {(data.images || []).map((url:string, i:number) => (
                 <img key={i} src={url} alt="" className="w-full h-24 object-cover rounded border" />
               ))}
-              {!((data.images||[]).length) && <div className="text-sm text-gray-400">Aucune image.</div>}
+              {!((data.images||[]).length) && <div className="text-sm text-gray-400 dark:text-gray-500">Aucune image.</div>}
             </div>
 
             {data.description && (
               <section className="space-y-1">
-                <h4 className="text-sm font-semibold text-gray-700">Description</h4>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Description</h4>
                 <div className="prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{ __html: data.description }} />
               </section>
@@ -60,11 +62,11 @@ export function EventView({ eventId, onClose, onEdit }:{
 
             {!!fields.length && (
               <section className="space-y-3">
-                <h4 className="text-sm font-semibold text-gray-700">Champs personnalisés</h4>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Champs personnalisés</h4>
                 <ul className="space-y-3">
                   {fields.map(f => (
-                    <li key={f.id} className="border rounded-xl p-3">
-                      <div className="text-xs text-gray-500 mb-1">{f.label}</div>
+                    <li key={f.id} className="border dark:border-gray-700 rounded-xl p-3">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{f.label}</div>
                       {f.type === 'richtext' ? (
                         <div className="prose prose-sm max-w-none"
                             dangerouslySetInnerHTML={{ __html: f.value || '' }} />

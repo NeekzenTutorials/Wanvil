@@ -9,6 +9,7 @@ import {
 import type { HierarchyNode } from '../../types/hierarchyNode'
 import { apiGet, apiPost } from '../../utils/fetcher'
 import type { SelectedNode } from '../../types/selectedNodes'
+import { useTranslation } from '../../i18n'
 
 /* -------------------------------------------------------------------------- */
 /*  Custom hook : fetch + refresh                                             */
@@ -55,6 +56,7 @@ type Level = 'collection' | 'saga' | 'tome'
 const STORAGE_KEY = (pid?: string) => `wv:tree:open:${pid || 'global'}`
 
 const Hierarchy: FC<HierarchyProps> = ({ onSelect, onRefreshReady }) => {
+  const { t } = useTranslation()
   const { projectId } = useParams()
   const { data: tree, loading, error, refresh } = useHierarchy(projectId)
 
@@ -122,9 +124,9 @@ const Hierarchy: FC<HierarchyProps> = ({ onSelect, onRefreshReady }) => {
   if (loading) {
     return (
       <div className="px-2 py-2 space-y-2">
-        <div className="h-9 bg-gray-200/60 rounded animate-pulse" />
-        <div className="h-9 bg-gray-200/60 rounded animate-pulse" />
-        <div className="h-9 bg-gray-200/60 rounded animate-pulse" />
+        <div className="h-9 bg-gray-200/60 dark:bg-gray-700/60 rounded animate-pulse" />
+        <div className="h-9 bg-gray-200/60 dark:bg-gray-700/60 rounded animate-pulse" />
+        <div className="h-9 bg-gray-200/60 dark:bg-gray-700/60 rounded animate-pulse" />
       </div>
     )
   }
@@ -137,39 +139,39 @@ const Hierarchy: FC<HierarchyProps> = ({ onSelect, onRefreshReady }) => {
       {/* Top bar: search + expand/collapse */}
       <div className="px-2 flex items-center gap-2">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-2 top-2.5 text-gray-400" />
+          <Search className="w-4 h-4 absolute left-2 top-2.5 text-gray-400 dark:text-gray-500" />
           <input
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Rechercher…"
-            className="w-full pl-8 pr-2 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+            className="w-full pl-8 pr-2 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
           />
         </div>
         <button
           onClick={expandAll}
-          className="p-2 rounded-lg border hover:bg-gray-50"
-          title="Tout déployer"
+          className="p-2 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+          title={t('hierarchy.expandAll')}
         >
-          <ChevronsDown className="w-4 h-4 text-gray-600" />
+          <ChevronsDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
         </button>
         <button
           onClick={collapseAll}
-          className="p-2 rounded-lg border hover:bg-gray-50"
-          title="Tout replier"
+          className="p-2 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+          title={t('hierarchy.collapseAll')}
         >
-          <ChevronsUp className="w-4 h-4 text-gray-600" />
+          <ChevronsUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
         </button>
       </div>
 
       {/* Tree */}
       {!treeToRender || treeToRender.length === 0 ? (
         <div className="px-2 space-y-2">
-          <p className="text-sm text-gray-500">Aucune collection</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('hierarchy.noCollection')}</p>
           <button
             onClick={handleCreateRoot}
             className="inline-flex items-center gap-1 text-indigo-600 text-sm hover:underline"
           >
-            <Plus className="w-4 h-4" /> Nouvelle collection
+            <Plus className="w-4 h-4" /> {t('hierarchy.newCollection')}
           </button>
         </div>
       ) : (
@@ -193,7 +195,7 @@ const Hierarchy: FC<HierarchyProps> = ({ onSelect, onRefreshReady }) => {
             onClick={handleCreateRoot}
             className="flex items-center gap-1 text-indigo-600 text-sm hover:underline mt-1 px-2"
           >
-            <Plus className="w-4 h-4" /> Nouvelle collection
+            <Plus className="w-4 h-4" /> {t('hierarchy.newCollection')}
           </button>
         </>
       )}
@@ -205,9 +207,9 @@ const Hierarchy: FC<HierarchyProps> = ({ onSelect, onRefreshReady }) => {
 /*  Recursive tree node                                                       */
 /* -------------------------------------------------------------------------- */
 const levelIcon = (lvl: Level) =>
-  lvl === 'collection' ? <Folder className="w-4 h-4 text-indigo-600" /> :
-  lvl === 'saga'       ? <Layers className="w-4 h-4 text-sky-600" /> :
-                         <Book   className="w-4 h-4 text-slate-600" />
+  lvl === 'collection' ? <Folder className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> :
+  lvl === 'saga'       ? <Layers className="w-4 h-4 text-sky-600 dark:text-sky-400" /> :
+                         <Book   className="w-4 h-4 text-slate-600 dark:text-slate-400" />
 
 const nextLevel = (lvl: Level): Level => (lvl === 'collection' ? 'saga' : 'tome')
 
@@ -219,7 +221,8 @@ const TreeNode: FC<{
   openSet: Set<string>
   toggleOpen: (id: string) => void
   selectedId: string
-}> = ({ node, onSelect, refresh, projectId, openSet, toggleOpen, selectedId }) => {
+}> = ({ node, onSelect, refresh, projectId, openSet, toggleOpen, selectedId }) => { 
+  const { t } = useTranslation() 
   const isOpen = openSet.has(node.id)
   const hasChildren = !!(node.children && node.children.length > 0)
   const isSelected = selectedId === node.id
@@ -241,15 +244,15 @@ const TreeNode: FC<{
     <div>
       <div
         className={`group relative mx-1 flex items-center gap-2 rounded-lg px-2 py-1.5
-          ${isSelected ? 'bg-indigo-50 ring-1 ring-indigo-100' : 'hover:bg-gray-50'}`}
+          ${isSelected ? 'bg-indigo-50 dark:bg-indigo-950 ring-1 ring-indigo-100 dark:ring-indigo-800' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
       >
         {/* Caret */}
         {hasChildren ? (
           <button
             onClick={() => toggleOpen(node.id)}
-            className="p-1 rounded hover:bg-gray-100 text-gray-500"
-            aria-label={isOpen ? 'Replier' : 'Déployer'}
-            title={isOpen ? 'Replier' : 'Déployer'}
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
+            aria-label={isOpen ? t('hierarchy.collapse') : t('hierarchy.expand')}
+            title={isOpen ? t('hierarchy.collapse') : t('hierarchy.expand')}
           >
             {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </button>
@@ -266,14 +269,14 @@ const TreeNode: FC<{
           className="flex-1 text-left truncate"
           title={node.title}
         >
-          <span className={`text-sm ${isSelected ? 'text-indigo-900 font-medium' : 'text-gray-800'}`}>
+          <span className={`text-sm ${isSelected ? 'text-indigo-900 dark:text-indigo-300 font-medium' : 'text-gray-800 dark:text-gray-200'}`}>
             {node.title}
           </span>
         </button>
 
         {/* Badge children count */}
         {hasChildren && (
-          <span className="text-[11px] leading-4 px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+          <span className="text-[11px] leading-4 px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
             {node.children!.length}
           </span>
         )}
@@ -282,8 +285,8 @@ const TreeNode: FC<{
         {node.level !== 'tome' && (
           <button
             onClick={createChild}
-            className="ml-1 p-1 rounded text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 opacity-0 group-hover:opacity-100 transition"
-            title={node.level === 'collection' ? 'Ajouter une saga' : 'Ajouter un tome'}
+            className="ml-1 p-1 rounded text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 opacity-0 group-hover:opacity-100 transition"
+            title={node.level === 'collection' ? t('hierarchy.addSaga') : t('hierarchy.addTome')}
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -294,7 +297,7 @@ const TreeNode: FC<{
       </div>
 
       {hasChildren && isOpen && (
-        <div className="pl-5 ml-3 border-l border-gray-200 space-y-1">
+        <div className="pl-5 ml-3 border-l border-gray-200 dark:border-gray-700 space-y-1">
           {node.children!.map((child) => (
             <TreeNode
               key={child.id}

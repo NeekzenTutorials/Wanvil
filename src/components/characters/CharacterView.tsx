@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { apiGet } from '../../utils/fetcher'
 import type { CharacterTemplate, TemplateField } from '../../types/character'
 import ModalPortal from '../common/ModalPortal'
+import { useTranslation } from '../../i18n'
 
 type Tag = { id:string; name:string; color?:string; note?:string }
 
@@ -15,6 +16,7 @@ export function CharacterView({
   onClose: () => void
   onEdit?: (id:string)=>void
 }) {
+  const { t } = useTranslation()
   const [data, setData] = useState<any>(null)
   const [template, setTemplate] = useState<CharacterTemplate | null>(null)
 
@@ -79,12 +81,12 @@ export function CharacterView({
   return (
     <ModalPortal>
       <div className="fixed inset-0 z-[9999] bg-black/40 flex">
-        <div className="ml-auto h-full w-full max-w-3xl bg-white flex flex-col">
+          <div className="ml-auto h-full w-full max-w-3xl bg-white dark:bg-gray-800 flex flex-col">
           {/* Header */}
-          <div className="p-4 border-b flex items-center gap-2">
-            <h3 className="font-semibold">Personnage : {data.firstname} {data.lastname}</h3>
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+            <h3 className="font-semibold dark:text-gray-100">Personnage : {data.firstname} {data.lastname}</h3>
             <div className="ml-auto flex gap-2">
-              {onEdit && <button className="btn-secondary" onClick={()=>onEdit(characterId)}>Éditer</button>}
+              {onEdit && <button className="btn-secondary" onClick={()=>onEdit(characterId)}>{t('common.edit')}</button>}
               <button className="btn-primary" onClick={onClose}>Fermer</button>
             </div>
           </div>
@@ -98,12 +100,12 @@ export function CharacterView({
                 className="w-16 h-16 rounded object-cover border"
                 alt=""
               />
-              <div className="text-sm text-gray-600 space-y-0.5">
+              <div className="text-sm text-gray-600 dark:text-gray-400 space-y-0.5">
                 {data.age != null && (
-                  <div>Âge : <span className="font-medium">{data.age}</span></div>
+                  <div>{t('characters.age')} : <span className="font-medium">{data.age}</span></div>
                 )}
                 {data.birthdate && (
-                  <div>Naissance : <span className="font-medium">{data.birthdate}</span></div>
+                  <div>{t('characters.birthdate')} : <span className="font-medium">{data.birthdate}</span></div>
                 )}
               </div>
             </div>
@@ -128,11 +130,11 @@ export function CharacterView({
             {/* Champs du template (non builtin) */}
             {!!nonBuiltinFields.length && (
               <section className="space-y-3">
-                <h4 className="text-sm font-semibold text-gray-700">Détails</h4>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Détails</h4>
                 <ul className="space-y-3">
                   {nonBuiltinFields.map((f) => (
-                    <li key={f.id} className="border rounded-xl p-3">
-                      <div className="text-xs text-gray-500 mb-1">{f.label}</div>
+                    <li key={f.id} className="border border-gray-200 dark:border-gray-700 rounded-xl p-3">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{f.label}</div>
                       {renderField(f, (data.content || {})[f.id])}
                     </li>
                   ))}

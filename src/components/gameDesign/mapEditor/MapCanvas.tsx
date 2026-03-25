@@ -481,7 +481,7 @@ export const MapCanvas: FC<Props> = ({
   }
 
   return (
-    <div ref={wrapRef} className="flex-1 relative overflow-hidden bg-gray-100 rounded-lg" tabIndex={-1}>
+    <div ref={wrapRef} className="flex-1 relative overflow-hidden bg-gray-100 dark:bg-gray-900 rounded-lg" tabIndex={-1}>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"

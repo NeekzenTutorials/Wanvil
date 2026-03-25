@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { useTranslation } from '../../i18n'
 
 export default function TagFilterPopover(props: {
   tags: { id:string; name:string; color?:string; note?:string }[]
@@ -8,6 +9,7 @@ export default function TagFilterPopover(props: {
   onChange: (ids: string[]) => void
 }) {
   const { tags, noteOptions, selectedTagIds, onChange } = props
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
   const btnRef = useRef<HTMLButtonElement | null>(null)
@@ -17,8 +19,8 @@ export default function TagFilterPopover(props: {
   useEffect(() => {
     if (!open) return
     const onDown = (e: MouseEvent) => {
-      const t = e.target as Node
-      if (panelRef.current?.contains(t) || btnRef.current?.contains(t)) return
+      const target = e.target as Node
+      if (panelRef.current?.contains(target) || btnRef.current?.contains(target)) return
       setOpen(false)
     }
     const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
@@ -34,7 +36,7 @@ export default function TagFilterPopover(props: {
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
     if (!needle) return tags
-    return tags.filter(t => t.name.toLowerCase().includes(needle))
+    return tags.filter(tag => tag.name.toLowerCase().includes(needle))
   }, [tags, q])
 
   // Groupes par annotation
@@ -42,10 +44,10 @@ export default function TagFilterPopover(props: {
     const map = new Map<string, typeof filtered>()
     const noNoteKey = '__none__'
     map.set(noNoteKey, [])
-    for (const t of filtered) {
-      const key = t.note || noNoteKey
+    for (const tag of filtered) {
+      const key = tag.note || noNoteKey
       if (!map.has(key)) map.set(key, [])
-      map.get(key)!.push(t)
+      map.get(key)!.push(tag)
     }
     // Trie par nom dans chaque section
     for (const [k, arr] of map.entries()) {
@@ -67,7 +69,7 @@ export default function TagFilterPopover(props: {
 
   const clearAll = () => onChange([])
   const selectAllVisible = () => {
-    const visibleIds = filtered.map(t => t.id)
+    const visibleIds = filtered.map(tag => tag.id)
     const merged = new Set([...selectedTagIds, ...visibleIds])
     onChange(Array.from(merged))
   }
@@ -80,7 +82,7 @@ export default function TagFilterPopover(props: {
         ref={btnRef}
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="inline-flex items-center gap-2 border rounded px-3 py-2 hover:bg-gray-50"
+        className="inline-flex items-center gap-2 border border-gray-200 dark:border-gray-600 rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300"
         aria-expanded={open}
       >
         Tags {count > 0 && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-900 text-white">{count}</span>}
@@ -90,21 +92,21 @@ export default function TagFilterPopover(props: {
       {open && (
         <div
           ref={panelRef}
-          className="absolute z-50 mt-2 w-80 max-w-[90vw] rounded-xl border bg-white shadow-lg p-3"
+          className="absolute z-50 mt-2 w-80 max-w-[90vw] rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg p-3"
         >
           {/* Barre d’actions */}
           <div className="flex items-center gap-2 mb-2">
             <input
-              className="border rounded px-2 py-1.5 flex-1"
-              placeholder="Rechercher un tag…"
+              className="border border-gray-200 dark:border-gray-600 rounded px-2 py-1.5 flex-1 bg-white dark:bg-gray-700 dark:text-gray-100"
+              placeholder={t('tags.searchTag')}
               value={q}
               onChange={e => setQ(e.target.value)}
             />
-            <button onClick={selectAllVisible} className="text-xs px-2 py-1 border rounded hover:bg-gray-50">
-              Tout (visible)
+            <button onClick={selectAllVisible} className="text-xs px-2 py-1 border border-gray-200 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300">
+              {t('tags.allVisible')}
             </button>
-            <button onClick={clearAll} className="text-xs px-2 py-1 border rounded hover:bg-gray-50">
-              Effacer
+            <button onClick={clearAll} className="text-xs px-2 py-1 border border-gray-200 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300">
+              {t('tags.clear')}
             </button>
           </div>
 
@@ -112,26 +114,26 @@ export default function TagFilterPopover(props: {
           <div className="max-h-64 overflow-y-auto pr-1">
             {grouped.map(([note, arr]) => (
               <div key={note} className="mb-3">
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">
-                  {note === '__none__' ? 'Sans annotation' : note}
+                <div className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                  {note === '__none__' ? t('tags.noAnnotation') : note}
                 </div>
                 <ul className="space-y-1">
-                  {arr.map(t => {
-                    const on = selectedTagIds.includes(t.id)
+                  {arr.map(tag => {
+                    const on = selectedTagIds.includes(tag.id)
                     return (
-                      <li key={t.id}>
+                      <li key={tag.id}>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={on}
-                            onChange={() => toggle(t.id)}
+                            onChange={() => toggle(tag.id)}
                           />
                           <span
                             className="inline-block h-3 w-3 rounded"
-                            style={{ backgroundColor: t.color || '#e5e7eb', border: '1px solid #e5e7eb' }}
+                            style={{ backgroundColor: tag.color || '#e5e7eb', border: '1px solid #e5e7eb' }}
                           />
-                          <span className="text-sm">{t.name}</span>
-                          {t.note && <span className="ml-auto text-xs text-gray-400">{t.note}</span>}
+                          <span className="text-sm">{tag.name}</span>
+                          {tag.note && <span className="ml-auto text-xs text-gray-400">{tag.note}</span>}
                         </label>
                       </li>
                     )
@@ -140,12 +142,12 @@ export default function TagFilterPopover(props: {
               </div>
             ))}
             {filtered.length === 0 && (
-              <div className="text-sm text-gray-500 py-6 text-center">Aucun tag</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">{t('tags.noTag')}</div>
             )}
           </div>
 
           <div className="mt-3 flex justify-end gap-2">
-            <button className="px-3 py-1.5 border rounded hover:bg-gray-50" onClick={() => setOpen(false)}>Fermer</button>
+            <button className="px-3 py-1.5 border border-gray-200 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300" onClick={() => setOpen(false)}>Fermer</button>
           </div>
         </div>
       )}

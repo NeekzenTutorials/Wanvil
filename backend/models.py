@@ -12,6 +12,8 @@ class Project(db.Model):
 
     collections = db.relationship('Collection', back_populates='project', cascade='all, delete-orphan')
     game_design_components = db.relationship('GameDesignComponentModel', back_populates='project', cascade='all, delete-orphan')
+    members = db.relationship('ProjectMember', back_populates='project', cascade='all, delete-orphan')
+    ticket_board = db.relationship('TicketBoard', back_populates='project', uselist=False, cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -344,3 +346,148 @@ class GameDesignComponentModel(db.Model):
             'createdAt': self.created_at.isoformat() if self.created_at else None,
             'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
         }
+
+
+# ─── Project Members ───
+
+class ProjectMember(db.Model):
+    __tablename__ = 'project_members'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    project_id = db.Column(db.String, db.ForeignKey('projects.id'), nullable=False)
+    name = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(100), nullable=True)
+    color = db.Column(db.String(32), nullable=True)  # avatar color
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    project = db.relationship('Project', back_populates='members')
+    assignments = db.relationship('TicketAssignee', back_populates='member', cascade='all, delete-orphan')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'projectId': self.project_id,
+            'name': self.name,
+            'role': self.role,
+            'color': self.color,
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ─── Ticket Board ───
+
+class TicketBoard(db.Model):
+    """One board per project (created when the task-board GD component is added)."""
+    __tablename__ = 'ticket_boards'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    project_id = db.Column(db.String, db.ForeignKey('projects.id'), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    project = db.relationship('Project', back_populates='ticket_board')
+    columns = db.relationship('TicketColumn', back_populates='board', cascade='all, delete-orphan',
+                              order_by='TicketColumn.position')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'projectId': self.project_id,
+            'columns': [c.to_dict() for c in self.columns],
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class TicketColumn(db.Model):
+    """A column / status lane on the board (e.g. To Do, In Progress, Done)."""
+    __tablename__ = 'ticket_columns'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    board_id = db.Column(db.String, db.ForeignKey('ticket_boards.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    color = db.Column(db.String(32), nullable=False, default='#6366f1')  # column accent color
+    position = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    board = db.relationship('TicketBoard', back_populates='columns')
+    tickets = db.relationship('Ticket', back_populates='column', cascade='all, delete-orphan',
+                              order_by='Ticket.position')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'boardId': self.board_id,
+            'name': self.name,
+            'color': self.color,
+            'position': self.position,
+            'tickets': [t.to_dict() for t in self.tickets],
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class Ticket(db.Model):
+    __tablename__ = 'tickets'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    column_id = db.Column(db.String, db.ForeignKey('ticket_columns.id'), nullable=False)
+    title = db.Column(db.String(300), nullable=False)
+    description = db.Column(db.Text, nullable=True, default='')
+    priority = db.Column(db.String(20), nullable=False, default='medium')  # low, medium, high, critical
+    position = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    column = db.relationship('TicketColumn', back_populates='tickets')
+    tags = db.relationship('TicketTag', back_populates='ticket', cascade='all, delete-orphan')
+    checklist = db.relationship('TicketChecklistItem', back_populates='ticket', cascade='all, delete-orphan',
+                                order_by='TicketChecklistItem.position')
+    assignees = db.relationship('TicketAssignee', back_populates='ticket', cascade='all, delete-orphan')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'columnId': self.column_id,
+            'title': self.title,
+            'description': self.description or '',
+            'priority': self.priority,
+            'position': self.position,
+            'tags': [t.to_dict() for t in self.tags],
+            'checklist': [c.to_dict() for c in self.checklist],
+            'assignees': [a.to_dict() for a in self.assignees],
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
+            'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class TicketTag(db.Model):
+    __tablename__ = 'ticket_tags'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    ticket_id = db.Column(db.String, db.ForeignKey('tickets.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    color = db.Column(db.String(32), nullable=False, default='#6366f1')
+
+    ticket = db.relationship('Ticket', back_populates='tags')
+
+    def to_dict(self):
+        return {'id': self.id, 'ticketId': self.ticket_id, 'name': self.name, 'color': self.color}
+
+
+class TicketChecklistItem(db.Model):
+    __tablename__ = 'ticket_checklist_items'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    ticket_id = db.Column(db.String, db.ForeignKey('tickets.id'), nullable=False)
+    text = db.Column(db.String(500), nullable=False)
+    done = db.Column(db.Boolean, nullable=False, default=False)
+    position = db.Column(db.Integer, nullable=False, default=0)
+
+    ticket = db.relationship('Ticket', back_populates='checklist')
+
+    def to_dict(self):
+        return {'id': self.id, 'ticketId': self.ticket_id, 'text': self.text, 'done': self.done, 'position': self.position}
+
+
+class TicketAssignee(db.Model):
+    __tablename__ = 'ticket_assignees'
+    ticket_id = db.Column(db.String, db.ForeignKey('tickets.id'), primary_key=True)
+    member_id = db.Column(db.String, db.ForeignKey('project_members.id'), primary_key=True)
+
+    ticket = db.relationship('Ticket', back_populates='assignees')
+    member = db.relationship('ProjectMember', back_populates='assignments')
+
+    def to_dict(self):
+        return {'ticketId': self.ticket_id, 'memberId': self.member_id, 'memberName': self.member.name, 'memberColor': self.member.color}

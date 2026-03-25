@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { apiGet, apiPost, apiDelete } from '../../utils/fetcher'
 import { Plus, Trash2, MapPin, Edit3 } from 'lucide-react'
 import TagFilterPopover from '../common/TagFilterPopover'
+import { useTranslation } from '../../i18n'
 import { PlacesForm } from './PlacesForm'
 import { PlaceView } from './PlaceView'
 
@@ -19,6 +20,7 @@ type Card = {
 }
 
 export function PlacesPage({ projectId }: { projectId: string }) {
+  const { t } = useTranslation()
   const [collections, setCollections] = useState<Collection[]>([])
   const [collectionId, setCollectionId] = useState<string | null>(null)
 
@@ -34,7 +36,7 @@ export function PlacesPage({ projectId }: { projectId: string }) {
 
   // Regroupement par annotation de tag (ex: "région")
   const noteOptions = useMemo(
-    () => Array.from(new Set(tags.map(t => t.note).filter(Boolean))) as string[],
+    () => Array.from(new Set(tags.map(tag => tag.note).filter(Boolean))) as string[],
     [tags]
   )
   const [groupNote, setGroupNote] = useState<string>('')
@@ -64,10 +66,10 @@ export function PlacesPage({ projectId }: { projectId: string }) {
   }
 
   const createPlace = async () => {
-    if (!collectionId) { alert('Choisissez une collection'); return }
+    if (!collectionId) { alert(t('places.chooseCollection')); return }
     try {
     const p = await apiPost<any>(`collections/${collectionId}/places`, {
-        name: 'Nouveau lieu',
+        name: t('places.newPlace'),
         location: '',
         description: '',
         images: [],
@@ -77,7 +79,7 @@ export function PlacesPage({ projectId }: { projectId: string }) {
     fetchPlaces()
     } catch (e) {
     console.error(e)
-    alert('La création du lieu a échoué (voir console).')
+    alert(t('places.creationFailed'))
     }
   }
 
@@ -100,15 +102,15 @@ export function PlacesPage({ projectId }: { projectId: string }) {
     return (
       <article
         key={card.id}
-        className="relative group border rounded-xl bg-white p-4 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition"
+        className="relative group border dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 p-4 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition"
         onClick={() => setViewingId(card.id)}
       >
         <button
           onClick={(e) => { e.stopPropagation(); deletePlace(card.id) }}
           disabled={deletingId === card.id}
-          title="Supprimer ce lieu"
-          aria-label="Supprimer ce lieu"
-          className="absolute top-2 right-2 p-1.5 rounded-full border text-red-600 bg-white/95 hover:bg-red-50 hover:border-red-300 shadow-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 disabled:opacity-50"
+          title={t('places.deletePlace')}
+          aria-label={t('places.deletePlace')}
+          className="absolute top-2 right-2 p-1.5 rounded-full border dark:border-gray-600 text-red-600 dark:text-red-400 bg-white/95 dark:bg-gray-800/95 hover:bg-red-50 dark:hover:bg-red-950 hover:border-red-300 shadow-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 disabled:opacity-50"
         >
           {deletingId === card.id ? (
             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -122,9 +124,9 @@ export function PlacesPage({ projectId }: { projectId: string }) {
 
         <button
           onClick={(e) => { e.stopPropagation(); setEditingId(card.id) }}
-          title="Éditer ce lieu"
-          aria-label="Éditer ce lieu"
-          className="absolute top-2 right-10 p-1.5 rounded-full border bg-white/95 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+          title={t('places.editPlace')}
+          aria-label={t('places.editPlace')}
+          className="absolute top-2 right-10 p-1.5 rounded-full border dark:border-gray-600 bg-white/95 dark:bg-gray-800/95 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 shadow-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
         >
           <Edit3 className="w-4 h-4" />
         </button>
@@ -136,7 +138,7 @@ export function PlacesPage({ projectId }: { projectId: string }) {
         />
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate">{card.name}</div>
-          <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 truncate">
+          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5 truncate">
             <MapPin className="w-3 h-3" /> {card.location || '—'}
           </div>
           <div className="flex gap-1 flex-wrap mt-1">
@@ -158,12 +160,12 @@ export function PlacesPage({ projectId }: { projectId: string }) {
 
   // --- regroupements par annotation
   const tagsForCurrentNote = useMemo(
-    () => (groupNote ? tags.filter(t => (t.note || '') === groupNote) : []),
+    () => (groupNote ? tags.filter(tag => (tag.note || '') === groupNote) : []),
     [tags, groupNote]
   )
   const cardsWithoutCurrentNote = useMemo(() => {
     if (!groupNote) return []
-    const ids = new Set(tagsForCurrentNote.map(t => t.id))
+    const ids = new Set(tagsForCurrentNote.map(tag => tag.id))
     return cards.filter(c => !((c.tags || []).some((x: any) => ids.has(x.id))))
   }, [cards, tagsForCurrentNote, groupNote])
 
@@ -181,17 +183,17 @@ export function PlacesPage({ projectId }: { projectId: string }) {
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
         <select
-          className="border rounded px-3 py-2"
+          className="border dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-100"
           value={collectionId ?? ''}
           onChange={e => setCollectionId(e.target.value || null)}
         >
-          <option value="" disabled>Choisir une collection</option>
+          <option value="" disabled>{t('places.chooseCollection')}</option>
           {collections.map(co => <option key={co.id} value={co.id}>{co.name}</option>)}
         </select>
 
         <input
-          className="border rounded px-3 py-2 flex-1 min-w-[200px]"
-          placeholder="Rechercher…"
+          className="border dark:border-gray-600 rounded px-3 py-2 flex-1 min-w-[200px] dark:bg-gray-800 dark:text-gray-100"
+          placeholder={t('common.search')}
           value={q}
           onChange={e => setQ(e.target.value)}
         />
@@ -204,9 +206,9 @@ export function PlacesPage({ projectId }: { projectId: string }) {
         />
 
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-700">Correspondance</label>
+          <label className="text-sm text-gray-700 dark:text-gray-300">Correspondance</label>
           <select
-            className="border rounded px-2 py-2"
+            className="border dark:border-gray-600 rounded px-2 py-2 dark:bg-gray-800 dark:text-gray-100"
             value={matchMode}
             onChange={e => setMatchMode(e.target.value as 'any'|'all')}
           >
@@ -216,9 +218,9 @@ export function PlacesPage({ projectId }: { projectId: string }) {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <label className="text-sm text-gray-700">Regrouper par annotation</label>
+          <label className="text-sm text-gray-700 dark:text-gray-300">Regrouper par annotation</label>
           <select
-            className="border rounded px-2 py-2"
+            className="border dark:border-gray-600 rounded px-2 py-2 dark:bg-gray-800 dark:text-gray-100"
             value={groupNote}
             onChange={e => setGroupNote(e.target.value)}
           >
@@ -227,7 +229,7 @@ export function PlacesPage({ projectId }: { projectId: string }) {
           </select>
 
           <button onClick={createPlace} className="btn-primary inline-flex items-center gap-1">
-            <Plus className="w-4 h-4" /> Nouveau lieu
+            <Plus className="w-4 h-4" /> {t('places.newPlace')}
           </button>
         </div>
       </div>
@@ -242,9 +244,9 @@ export function PlacesPage({ projectId }: { projectId: string }) {
           {cardsWithoutCurrentNote.length > 0 && (
             <section>
               <header className="mb-3">
-                <h3 className="text-sm font-semibold text-gray-700">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Sans {groupNote}
-                  <span className="ml-2 text-gray-400">({cardsWithoutCurrentNote.length})</span>
+                  <span className="ml-2 text-gray-400 dark:text-gray-500">({cardsWithoutCurrentNote.length})</span>
                 </h3>
               </header>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -254,7 +256,7 @@ export function PlacesPage({ projectId }: { projectId: string }) {
           )}
 
           {sectionsForCurrentNote.length === 0 && (
-            <p className="text-sm text-gray-500">Aucun tag avec l’annotation « {groupNote} ».</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('tags.noTagWithAnnotation')} « {groupNote} ».</p>
           )}
 
           {sectionsForCurrentNote.map(({ tag, cards: arr }) => (
@@ -262,7 +264,7 @@ export function PlacesPage({ projectId }: { projectId: string }) {
               <header className="mb-3 flex items-center gap-2">
                 <div className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: tag.color || '#e5e7eb' }} />
                 <h3 className="text-sm font-semibold" style={{ color: tag.color || undefined }}>{tag.name}</h3>
-                <span className="text-xs text-gray-400">({arr.length})</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">({arr.length})</span>
               </header>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {arr.map(renderCard)}

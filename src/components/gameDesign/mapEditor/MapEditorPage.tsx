@@ -11,6 +11,7 @@ import { RoomProperties, StickerProperties } from './PropertiesPanel'
 import { RoomBankPanel } from './RoomBankPanel'
 import { Archive, Save } from 'lucide-react'
 import { apiGet, apiPut } from '../../../utils/fetcher'
+import { useTranslation } from '../../../i18n'
 
 interface Props {
   projectId: string
@@ -25,6 +26,7 @@ interface ComponentRecord {
 export const MapEditorPage: FC<Props> = ({ projectId, componentRecordId }) => {
   const ms = useMapState()
   const { state } = ms
+  const { t } = useTranslation()
 
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null)
@@ -182,14 +184,14 @@ export const MapEditorPage: FC<Props> = ({ projectId, componentRecordId }) => {
       {/* Title */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold">Éditeur de Map 2D</h2>
-          {saving && <span className="text-xs text-gray-400 flex items-center gap-1"><Save className="w-3 h-3 animate-pulse" /> Sauvegarde…</span>}
+          <h2 className="text-lg font-semibold">{t('mapEditor.title')}</h2>
+          {saving && <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1"><Save className="w-3 h-3 animate-pulse" /> {t('mapEditor.saving')}</span>}
         </div>
         <button
           onClick={() => setShowBank(!showBank)}
-          className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded border ${showBank ? 'bg-indigo-50 border-indigo-300 text-indigo-600' : 'hover:bg-gray-50'}`}
+          className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded border dark:border-gray-600 ${showBank ? 'bg-indigo-50 dark:bg-indigo-950 border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
         >
-          <Archive className="w-3.5 h-3.5" /> Banque de salles ({state.roomBank.length})
+          <Archive className="w-3.5 h-3.5" /> {t('mapEditor.roomBank')} ({state.roomBank.length})
         </button>
       </div>
 
@@ -240,12 +242,12 @@ export const MapEditorPage: FC<Props> = ({ projectId, componentRecordId }) => {
               />
             )}
             {selectedRoom && state.mode === 'view' && (
-              <div className="bg-white border rounded-lg p-3 shadow-sm">
+              <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-3 shadow-sm">
                 <p className="text-sm font-medium">{selectedRoom.name}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {selectedRoom.type === 'rect'
                     ? `${Math.round(selectedRoom.w)}×${Math.round(selectedRoom.h)}`
-                    : `Polygone ${selectedRoom.points?.length ?? 0} pts`}
+                    : `${t('mapEditor.polygon')} ${selectedRoom.points?.length ?? 0} pts`}
                 </p>
               </div>
             )}
@@ -257,9 +259,9 @@ export const MapEditorPage: FC<Props> = ({ projectId, componentRecordId }) => {
               />
             )}
             {selectedSticker && state.mode === 'view' && (
-              <div className="bg-white border rounded-lg p-3 shadow-sm">
+              <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-3 shadow-sm">
                 <p className="text-sm font-medium">{selectedSticker.label || '(sans nom)'}</p>
-                <p className="text-xs text-gray-500">{selectedSticker.tag}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{selectedSticker.tag}</p>
               </div>
             )}
           </div>
@@ -279,8 +281,8 @@ export const MapEditorPage: FC<Props> = ({ projectId, componentRecordId }) => {
             onDeleteLayer={ms.deleteLayer}
           />
           {showBank && (
-            <div className="w-64 bg-white border rounded-lg p-2 max-h-64 overflow-y-auto">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-1 px-1">Banque de salles</h4>
+            <div className="w-64 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-2 max-h-64 overflow-y-auto">
+              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1 px-1">{t('mapEditor.roomBank')}</h4>
               <RoomBankPanel
                 templates={state.roomBank}
                 onPlace={handlePlaceFromBank}

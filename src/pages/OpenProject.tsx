@@ -18,10 +18,12 @@ import {
   ArrowLeft,
   ExternalLink
 } from 'lucide-react'
+import { useTranslation } from '../i18n'
 
 type SortKey = 'updated' | 'created' | 'alpha'
 
 const OpenProject: FC = () => {
+  const { t, lang } = useTranslation()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -39,7 +41,7 @@ const OpenProject: FC = () => {
       const data = await apiGet<Project[]>('projects')
       setProjects(data)
     } catch (err: any) {
-      setError(err?.message || 'Impossible de charger les projets.')
+      setError(err?.message || t('openProject.errorLoad'))
     } finally {
       setLoading(false)
     }
@@ -90,7 +92,7 @@ const OpenProject: FC = () => {
     const d = new Date(s).getTime()
     const diffMs = d - Date.now()
     const abs = Math.abs(diffMs)
-    const rtf = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' })
+    const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' })
     const minute = 60_000, hour = 60 * minute, day = 24 * hour, week = 7 * day
     if (abs < hour) return rtf.format(Math.round(diffMs / minute), 'minute')
     if (abs < day)  return rtf.format(Math.round(diffMs / hour), 'hour')
@@ -103,40 +105,40 @@ const OpenProject: FC = () => {
   const Toolbar = (
     <div className="flex flex-wrap items-center gap-3">
       <div className="relative flex-1 min-w-[220px]">
-        <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 dark:text-gray-500" />
         <input
-          className="w-full rounded-xl border bg-white pl-9 pr-3 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200"
-          placeholder="Rechercher un projet…"
+          className="w-full rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-100 pl-9 pr-3 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 dark:focus:ring-indigo-800"
+          placeholder={t('openProject.searchPlaceholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
 
       <select
-        className="rounded-xl border bg-white px-3 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200"
+        className="rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-100 px-3 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 dark:focus:ring-indigo-800"
         value={sort}
         onChange={(e) => setSort(e.target.value as SortKey)}
         title="Trier"
       >
-        <option value="updated">Dernière activité</option>
-        <option value="created">Date de création</option>
-        <option value="alpha">Nom A → Z</option>
+        <option value="updated">{t('openProject.sortUpdated')}</option>
+        <option value="created">{t('openProject.sortCreated')}</option>
+        <option value="alpha">{t('openProject.sortAlpha')}</option>
       </select>
 
-      <div className="inline-flex rounded-xl border bg-white shadow-sm overflow-hidden">
+      <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
         <button
           type="button"
           onClick={() => setView('grid')}
-          className={`px-3 py-2 ${view === 'grid' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}
-          title="Grille"
+          className={`px-3 py-2 ${view === 'grid' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+          title={t('openProject.grid')}
         >
           <LayoutGrid className="h-4 w-4" />
         </button>
         <button
           type="button"
           onClick={() => setView('list')}
-          className={`px-3 py-2 ${view === 'list' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}
-          title="Liste"
+          className={`px-3 py-2 ${view === 'list' ? 'bg-indigo-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+          title={t('openProject.list')}
         >
           <ListIcon className="h-4 w-4" />
         </button>
@@ -146,16 +148,16 @@ const OpenProject: FC = () => {
         to="/project/new"
         className="ml-auto inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow hover:bg-indigo-700"
       >
-        <Plus className="h-4 w-4" /> Nouveau projet
+        <Plus className="h-4 w-4" /> {t('openProject.newProject')}
       </Link>
     </div>
   )
 
   const SkeletonCard = () => (
-    <div className="animate-pulse rounded-2xl border bg-white p-4 shadow-sm">
-      <div className="h-4 w-24 rounded bg-gray-200" />
-      <div className="mt-3 h-5 w-3/4 rounded bg-gray-200" />
-      <div className="mt-4 h-8 w-full rounded bg-gray-100" />
+    <div className="animate-pulse rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm">
+      <div className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-600" />
+      <div className="mt-3 h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-600" />
+      <div className="mt-4 h-8 w-full rounded bg-gray-100 dark:bg-gray-700" />
     </div>
   )
 
@@ -167,7 +169,7 @@ const OpenProject: FC = () => {
           onClick={load}
           className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-red-700 hover:bg-red-100"
         >
-          <RefreshCw className="h-4 w-4" /> Réessayer
+          <RefreshCw className="h-4 w-4" /> {t('common.retry')}
         </button>
       </div>
     </div>
@@ -176,16 +178,16 @@ const OpenProject: FC = () => {
   return (
     <div className="relative min-h-screen">
       {/* Backdrop */}
-      <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-br from-indigo-50 via-white to-purple-50" />
+      <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900" />
       <div aria-hidden className="absolute -top-20 -left-10 h-80 w-80 rounded-full bg-indigo-200/40 blur-3xl" />
       <div aria-hidden className="absolute top-40 -right-10 h-80 w-80 rounded-full bg-purple-200/40 blur-3xl" />
 
       <div className="mx-auto max-w-6xl px-6 py-10">
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
             <ArrowLeft className="h-4 w-4" />
-            Accueil
+            {t('openProject.home')}
           </Link>
         </div>
 
@@ -195,8 +197,8 @@ const OpenProject: FC = () => {
               <FolderOpen className="h-5 w-5" />
             </span>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Ouvrir un projet</h1>
-              <p className="text-sm text-gray-500">Retrouvez vos univers, classez-les et relancez l’écriture.</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('openProject.title')}</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('openProject.subtitle')}</p>
             </div>
           </div>
         </header>
@@ -214,17 +216,17 @@ const OpenProject: FC = () => {
         ) : error ? (
           ErrorBlock
         ) : projects.length === 0 ? (
-          <div className="rounded-2xl border bg-white p-10 text-center shadow-sm">
-            <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-10 text-center shadow-sm">
+            <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
               <Plus className="h-6 w-6" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Aucun projet pour le moment</h3>
-            <p className="mt-1 text-sm text-gray-500">Créez votre premier univers et commencez à écrire.</p>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('openProject.empty')}</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('openProject.emptyDesc')}</p>
             <Link
               to="/project/new"
               className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow hover:bg-indigo-700"
             >
-              <Plus className="h-4 w-4" /> Nouveau projet
+              <Plus className="h-4 w-4" /> {t('openProject.newProject')}
             </Link>
           </div>
         ) : (
@@ -238,7 +240,7 @@ const OpenProject: FC = () => {
                   return (
                     <div
                       key={proj.id}
-                      className="group relative rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md"
+                      className="group relative rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm transition hover:shadow-md"
                     >
                       {/* Bandeau haut discret */}
                       <div className="absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-sky-500 opacity-60" />
@@ -247,21 +249,21 @@ const OpenProject: FC = () => {
                         <button
                           onClick={() => togglePin(proj.id)}
                           className="text-gray-400 hover:text-indigo-600 transition"
-                          title={isPinned ? 'Retirer des favoris' : 'Épingler'}
+                          title={isPinned ? t('openProject.unpin') : t('openProject.pin')}
                         >
                           {isPinned ? <Star className="h-5 w-5 fill-yellow-400 text-yellow-500" /> : <StarOff className="h-5 w-5" />}
                         </button>
-                        <h3 className="text-base font-semibold text-gray-900 line-clamp-2">{proj.name}</h3>
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">{proj.name}</h3>
                       </div>
 
-                      <div className="space-y-1 text-xs text-gray-500">
+                      <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-3.5 w-3.5" />
-                          Créé le {fmtDate(proj.createdAt)}
+                          {t('openProject.createdOn')} {fmtDate(proj.createdAt)}
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="h-3.5 w-3.5" />
-                          Dernière activité : {fmtRelative(last)}
+                          {t('openProject.lastActivity')} {fmtRelative(last)}
                         </div>
                       </div>
 
@@ -270,13 +272,13 @@ const OpenProject: FC = () => {
                           to={`/project/${proj.id}`}
                           className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-3.5 py-2 text-sm font-medium text-white hover:bg-black"
                         >
-                          Ouvrir <ExternalLink className="h-4 w-4" />
+                          {t('common.open')} <ExternalLink className="h-4 w-4" />
                         </Link>
                         <Link
                           to={`/project/${proj.id}`}
                           className="text-sm text-indigo-600 hover:underline"
                         >
-                          Continuer →
+                          {t('common.continue')}
                         </Link>
                       </div>
                     </div>
@@ -287,14 +289,14 @@ const OpenProject: FC = () => {
 
             {/* LIST VIEW */}
             {view === 'list' && (
-              <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+              <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
                 <table className="min-w-full text-sm">
-                  <thead className="bg-gray-50 text-gray-600">
+                  <thead className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                     <tr>
-                      <th className="px-4 py-3 text-left">Projet</th>
-                      <th className="px-4 py-3 text-left">Création</th>
-                      <th className="px-4 py-3 text-left">Dernière activité</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
+                      <th className="px-4 py-3 text-left">{t('openProject.project')}</th>
+                      <th className="px-4 py-3 text-left">{t('openProject.creation')}</th>
+                      <th className="px-4 py-3 text-left">{t('openProject.lastActivity')}</th>
+                      <th className="px-4 py-3 text-right">{t('openProject.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -302,27 +304,27 @@ const OpenProject: FC = () => {
                       const last = p.updatedAt ?? p.createdAt
                       const isPinned = pinned.includes(p.id)
                       return (
-                        <tr key={p.id} className="border-t hover:bg-gray-50">
+                        <tr key={p.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <button
                                 onClick={() => togglePin(p.id)}
                                 className="text-gray-400 hover:text-indigo-600"
-                                title={isPinned ? 'Retirer des favoris' : 'Épingler'}
+                                title={isPinned ? t('openProject.unpin') : t('openProject.pin')}
                               >
                                 {isPinned ? <Star className="h-4 w-4 fill-yellow-400 text-yellow-500" /> : <StarOff className="h-4 w-4" />}
                               </button>
-                              <div className="font-medium text-gray-900">{p.name}</div>
+                              <div className="font-medium text-gray-900 dark:text-gray-100">{p.name}</div>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-gray-600">{fmtDate(p.createdAt)}</td>
-                          <td className="px-4 py-3 text-gray-600">{fmtRelative(last)}</td>
+                          <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{fmtDate(p.createdAt)}</td>
+                          <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{fmtRelative(last)}</td>
                           <td className="px-4 py-3 text-right">
                             <Link
                               to={`/project/${p.id}`}
-                              className="inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 hover:bg-gray-50"
+                              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-600 px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300"
                             >
-                              Ouvrir <ExternalLink className="h-4 w-4" />
+                              {t('common.open')} <ExternalLink className="h-4 w-4" />
                             </Link>
                           </td>
                         </tr>
@@ -331,7 +333,7 @@ const OpenProject: FC = () => {
                     {!filtered.length && (
                       <tr>
                         <td className="px-4 py-10 text-center text-gray-500" colSpan={4}>
-                          Aucun projet ne correspond à votre recherche.
+                          {t('openProject.noMatch')}
                         </td>
                       </tr>
                     )}

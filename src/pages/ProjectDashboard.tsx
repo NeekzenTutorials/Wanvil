@@ -12,6 +12,7 @@ import type { SelectedNode } from '../types/selectedNodes'
 import type { GameDesignComponent, GameDesignComponentRecord } from '../types/gameDesign'
 import { ConfirmModal } from '../components/common/ConfirmModal'
 import { Menu, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslation } from '../i18n'
 
 const MIN_W = 240
 const MAX_W = 520
@@ -19,6 +20,7 @@ const STORAGE_KEY = 'wv:sidebar:w'
 
 const ProjectDashboard: FC = () => {
   const { projectId } = useParams()
+  const { t } = useTranslation()
   const [project, setProject] = useState<Project | null>(null)
 
   const [activeSection, setActiveSection] = useState<SidebarSections>('redaction')
@@ -161,17 +163,17 @@ const ProjectDashboard: FC = () => {
   }, [projectId, pendingRemove, gdRecords, activeGameDesignComponent])
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <ProjectHeader projectName={project?.name ?? projectId ?? ''} />
 
       {/* Bouton burger visible en mobile */}
       <button
-        className="md:hidden fixed z-40 left-3 top-16 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/90 shadow-sm border"
+        className="md:hidden fixed z-40 left-3 top-16 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/90 dark:bg-gray-800/90 shadow-sm border border-gray-200 dark:border-gray-700"
         onClick={() => setMobileOpen(true)}
-        aria-label="Ouvrir le menu"
+        aria-label={t('dashboard.openMenu')}
       >
         <Menu className="w-4 h-4" />
-        <span className="text-sm">Menu</span>
+        <span className="text-sm">{t('sidebar.menu')}</span>
       </button>
 
       {/* Overlay sombre en mobile */}
@@ -251,16 +253,16 @@ const ProjectDashboard: FC = () => {
             onTouchStart={beginDrag}
             role="separator"
             aria-orientation="vertical"
-            aria-label="Redimensionner la barre latérale"
-            title="Glissez pour redimensionner"
+            aria-label={t('dashboard.resizeSidebar')}
+            title={t('dashboard.resizeSidebar')}
           >
-            <div className="absolute inset-y-0 left-[calc(50%-0.5px)] w-px bg-gray-200 group-hover:bg-indigo-400" />
+            <div className="absolute inset-y-0 left-[calc(50%-0.5px)] w-px bg-gray-200 dark:bg-gray-700 group-hover:bg-indigo-400" />
             {/* Bouton "plier" (flèche) attaché au handle */}
             <button
               onClick={toggleCollapse}
-              className="absolute -right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white border shadow hover:bg-gray-50"
-              aria-label="Masquer la barre latérale"
-              title="Masquer la barre latérale"
+              className="absolute -right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow hover:bg-gray-50 dark:hover:bg-gray-700"
+              aria-label={t('dashboard.hideSidebar')}
+              title={t('dashboard.hideSidebar')}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -271,9 +273,9 @@ const ProjectDashboard: FC = () => {
         {collapsed && (
           <button
             onClick={toggleCollapse}
-            className="hidden md:flex fixed left-2 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white border shadow hover:bg-gray-50"
-            aria-label="Afficher la barre latérale"
-            title="Afficher la barre latérale"
+            className="hidden md:flex fixed left-2 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow hover:bg-gray-50 dark:hover:bg-gray-700"
+            aria-label={t('dashboard.showSidebar')}
+            title={t('dashboard.showSidebar')}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -296,9 +298,9 @@ const ProjectDashboard: FC = () => {
       {/* Confirm delete modal for GD components */}
       <ConfirmModal
         open={pendingRemove !== null}
-        title="Supprimer ce composant ?"
-        message="Toutes les données associées (cartes, salles, autocollants…) seront définitivement supprimées. Cette action est irréversible."
-        confirmLabel="Supprimer"
+        title={t('dashboard.deleteComponent')}
+        message={t('dashboard.deleteComponentMsg')}
+        confirmLabel={t('common.delete')}
         onConfirm={handleConfirmRemove}
         onCancel={() => setPendingRemove(null)}
       />

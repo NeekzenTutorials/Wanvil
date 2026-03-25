@@ -12,6 +12,8 @@ from .chapters import chapters_extra_bp
 from .events import events_bp
 from .chronology import chronology_bp
 from .game_design import game_design_bp
+from .members import members_bp
+from .tickets import tickets_bp
 
 def register_routes(app: Flask):
     """Attach all Blueprint routes to the Flask app"""
@@ -28,3 +30,5 @@ def register_routes(app: Flask):
     app.register_blueprint(events_bp)
     app.register_blueprint(chronology_bp)
     app.register_blueprint(game_design_bp)
+    app.register_blueprint(members_bp)
+    app.register_blueprint(tickets_bp)

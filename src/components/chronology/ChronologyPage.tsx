@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Editor } from '@tinymce/tinymce-react'
 import { apiGet, apiPost, apiPut } from '../../utils/fetcher'
+import { useTranslation } from '../../i18n'
 import { EventsForm } from '../events/EventsForm'
 import { EventView } from '../events/EventView'
 
@@ -115,6 +116,7 @@ function clampText(s: string, maxChars: number): string {
 }
 
 export function ChronologyPage({ projectId }: { projectId: string }) {
+  const { t } = useTranslation()
   const [collections, setCollections] = useState<Collection[]>([])
   const [collectionId, setCollectionId] = useState<string>('')
 
@@ -200,7 +202,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
       setSelectedItemId(null)
     } catch (e: any) {
       console.error(e)
-      setError(e?.message || 'Erreur lors du chargement de la chronologie')
+      setError(e?.message || t('chronology.loadError'))
     } finally {
       setLoadingTimeline(false)
     }
@@ -309,7 +311,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
       await apiPut<TimelineApiPayload>(`collections/${collectionId}/timeline`, { data: timeline })
     } catch (e: any) {
       console.error(e)
-      setError(e?.message || 'Erreur lors de la sauvegarde')
+      setError(e?.message || t('chronology.saveError'))
     } finally {
       setSavingTimeline(false)
     }
@@ -401,7 +403,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
       paragraph: '',
     }
 
-    setTimeline(prev => ({ ...prev, items: uniqBy([placed, ...prev.items], t => t.id) }))
+    setTimeline(prev => ({ ...prev, items: uniqBy([placed, ...prev.items], x => x.id) }))
     setSelectedItemId(newId)
     scheduleAutoSave()
   }
@@ -476,7 +478,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
     if (!collectionId) return
     try {
       const ev = await apiPost<any>(`collections/${collectionId}/events`, {
-        name: 'Nouvel évènement',
+        name: t('chronology.newEvent'),
         startDate: todayISO(),
         endDate: null,
         description: '',
@@ -487,7 +489,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
       await fetchEvents()
     } catch (e) {
       console.error(e)
-      alert('La création a échoué (voir console).')
+      alert(t('chronology.createError'))
     }
   }
 
@@ -525,12 +527,12 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-6 max-w-full">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="text-xl font-semibold">Chronologie</div>
+        <div className="text-xl font-semibold">{t('chronology.title')}</div>
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <label className="text-sm text-gray-600">Collection</label>
+          <label className="text-sm text-gray-600 dark:text-gray-400">{t('chronology.collection')}</label>
           <select
-            className="border rounded px-3 py-2"
+            className="border rounded px-3 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
             value={collectionId}
             onChange={e => setCollectionId(e.target.value)}
           >
@@ -541,10 +543,10 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
             ))}
           </select>
           <button className="btn-secondary" onClick={fetchTimeline} disabled={!collectionId || loadingTimeline}>
-            {loadingTimeline ? 'Chargement…' : 'Rafraîchir'}
+            {loadingTimeline ? t('chronology.loading') : t('chronology.refresh')}
           </button>
           <button className="btn-primary" onClick={saveTimeline} disabled={!collectionId || savingTimeline}>
-            {savingTimeline ? 'Sauvegarde…' : 'Sauvegarder'}
+            {savingTimeline ? t('chronology.saving') : t('chronology.save')}
           </button>
 
           <button
@@ -552,16 +554,16 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
             type="button"
             onClick={() => setShowEventsList(v => !v)}
           >
-            {showEventsList ? 'Masquer la liste' : 'Afficher la liste'}
+            {showEventsList ? t('chronology.hideList') : t('chronology.showList')}
           </button>
 
           {!showEventsList && (
             <button className="btn-primary" onClick={createEvent} disabled={!collectionId}>
-              Créer évènement
+              {t('chronology.createEvent')}
             </button>
           )}
           <div className="flex items-center gap-2 ml-2">
-            <span className="text-sm text-gray-600">Zoom</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">{t('chronology.zoom')}</span>
             <input
               type="range"
               min={60}
@@ -570,12 +572,12 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
               value={zoomPct}
               onChange={e => setZoomPct(Number(e.target.value))}
             />
-            <span className="text-sm text-gray-600 w-12 text-right">{zoomPct}%</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400 w-12 text-right">{zoomPct}%</span>
           </div>
         </div>
       </div>
 
-      {error && <div className="border rounded-xl bg-red-50 text-red-700 px-4 py-3">{error}</div>}
+      {error && <div className="border rounded-xl bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400 px-4 py-3">{error}</div>}
 
       <div
         className={[
@@ -585,32 +587,32 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
       >
         {/* LEFT: Events list */}
         {showEventsList && (
-        <aside className="rounded-xl border bg-white shadow-sm p-4 space-y-4 min-w-0">
+        <aside className="rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 p-4 space-y-4 min-w-0">
           <div className="flex items-center gap-2">
-            <div className="font-semibold">Évènements</div>
+            <div className="font-semibold">{t('chronology.events')}</div>
             <div className="ml-auto">
               <button className="btn-primary" onClick={createEvent} disabled={!collectionId}>
-                Créer
+                {t('chronology.create')}
               </button>
             </div>
           </div>
 
           <input
-            className="border rounded px-3 py-2 w-full"
-            placeholder="Rechercher…"
+            className="border rounded px-3 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 w-full"
+            placeholder={t('chronology.search')}
             value={q}
             onChange={e => setQ(e.target.value)}
           />
 
-          <div className="text-xs text-gray-500">
-            Glissez un évènement sur la frise pour l’ajouter.
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {t('chronology.dragToAdd')}
           </div>
 
           <div className="space-y-2 max-h-[62vh] overflow-y-auto pr-1">
-            {loadingEvents && <div className="text-sm text-gray-500">Chargement…</div>}
+            {loadingEvents && <div className="text-sm text-gray-500 dark:text-gray-400">{t('chronology.loading')}</div>}
 
             {!loadingEvents && events.length === 0 && (
-              <div className="text-sm text-gray-500">Aucun évènement.</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{t('chronology.noEvent')}</div>
             )}
 
             {events.map(ev => {
@@ -624,7 +626,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                     e.dataTransfer.effectAllowed = 'copy'
                   }}
                   className={[
-                    'border rounded-xl bg-white p-3 flex items-start gap-3',
+                    'border rounded-xl bg-white dark:border-gray-700 dark:bg-gray-800 p-3 flex items-start gap-3',
                     alreadyPlaced ? 'opacity-60' : 'cursor-grab active:cursor-grabbing',
                   ].join(' ')}
                 >
@@ -643,23 +645,23 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                       >
                         <span className="truncate block">{ev.name}</span>
                       </button>
-                      {alreadyPlaced && <span className="text-[11px] text-gray-500">(déjà sur la frise)</span>}
+                      {alreadyPlaced && <span className="text-[11px] text-gray-500 dark:text-gray-400">({t('chronology.alreadyOnTimeline')})</span>}
                     </div>
-                    <div className="text-xs text-gray-600 mt-0.5">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
                       {ev.endDate ? `${ev.startDate} → ${ev.endDate}` : ev.startDate}
                     </div>
                     <div className="flex gap-1 flex-wrap mt-2">
-                      {(ev.tags || []).slice(0, 6).map(t => (
+                      {(ev.tags || []).slice(0, 6).map(tag => (
                         <span
-                          key={t.id}
+                          key={tag.id}
                           className="text-[11px] px-2 py-0.5 rounded border"
                           style={{
-                            borderColor: t.color || '#e5e7eb',
-                            backgroundColor: t.color ? `${t.color}22` : undefined,
+                            borderColor: tag.color || '#e5e7eb',
+                            backgroundColor: tag.color ? `${tag.color}22` : undefined,
                           }}
-                          title={t.note || undefined}
+                          title={tag.note || undefined}
                         >
-                          {t.name}
+                          {tag.name}
                         </span>
                       ))}
                     </div>
@@ -667,7 +669,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
 
                   <div className="flex flex-col gap-2">
                     <button className="btn-secondary" onClick={() => setEditingEventId(ev.id)}>
-                      Éditer
+                      {t('chronology.edit')}
                     </button>
                     {!alreadyPlaced && (
                       <button
@@ -675,7 +677,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                         onClick={() => addEventToTimeline(ev.id)}
                         disabled={!collectionId}
                       >
-                        Ajouter
+                        {t('chronology.add')}
                       </button>
                     )}
 
@@ -688,13 +690,13 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                             if (it) setSelectedItemId(it.id)
                           }}
                         >
-                          Voir
+                          {t('chronology.view')}
                         </button>
                         <button
                           className="btn-danger"
                           onClick={() => removeEventFromTimeline(ev.id)}
                         >
-                          Retirer
+                          {t('chronology.remove')}
                         </button>
                       </>
                     )}
@@ -708,11 +710,11 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
 
         {/* RIGHT: Timeline */}
         <section className="space-y-4 min-w-0">
-          <div className="rounded-xl border bg-white shadow-sm p-4 space-y-4">
+          <div className="rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 p-4 space-y-4">
             <div className="grid sm:grid-cols-2 gap-3">
               <input
-                className="border rounded px-3 py-2"
-                placeholder="Titre (optionnel)"
+                className="border rounded px-3 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                placeholder={t('chronology.titleOptional')}
                 value={timeline.options?.title || ''}
                 onChange={e => {
                   setTimeline(prev => ({
@@ -723,8 +725,8 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                 }}
               />
               <input
-                className="border rounded px-3 py-2"
-                placeholder="Description courte (optionnelle)"
+                className="border rounded px-3 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                placeholder={t('chronology.descOptional')}
                 value={timeline.options?.description || ''}
                 onChange={e => {
                   setTimeline(prev => ({
@@ -737,22 +739,22 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
             </div>
 
             <div
-              className="border rounded-xl bg-gray-50 p-4"
+              className="border rounded-xl bg-gray-50 dark:border-gray-700 dark:bg-gray-900 p-4"
               onDragOver={e => {
                 e.preventDefault()
                 e.dataTransfer.dropEffect = 'copy'
               }}
               onDrop={onDropToTimeline}
             >
-              <div className="text-sm font-semibold text-gray-800">Frise</div>
-              <div className="text-xs text-gray-500">
-                Déposez un évènement ici, puis déplacez-le librement sur le canvas.
+              <div className="text-sm font-semibold text-gray-800">{t('chronology.timeline')}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {t('chronology.dropHere')}
               </div>
 
               <div
                 ref={canvasViewportRef}
                 className={[
-                  'mt-4 rounded-xl border bg-white overflow-auto',
+                  'mt-4 rounded-xl border bg-white dark:border-gray-700 dark:bg-gray-800 overflow-auto',
                   isPanning ? 'cursor-grabbing' : 'cursor-grab',
                 ].join(' ')}
                 style={{ height: '62vh', maxWidth: '100%' }}
@@ -792,7 +794,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                     className="sticky top-0 left-0 z-20"
                     style={{ height: scaled(AXIS_H) }}
                   >
-                    <div className="absolute inset-0 bg-white/90 backdrop-blur-sm" />
+                    <div className="absolute inset-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm" />
 
                     <div
                       className="absolute left-0 right-0"
@@ -801,17 +803,17 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                       <div className="h-full bg-gray-800 rounded" />
                     </div>
 
-                    {axisLabels.map((t, idx) => {
-                      const leftPxBase = clamp(t.leftPct, 0, 1) * 3200 + 120
+                    {axisLabels.map((tick, idx) => {
+                      const leftPxBase = clamp(tick.leftPct, 0, 1) * 3200 + 120
                       return (
                         <div
                           key={idx}
                           className="absolute"
                           style={{ left: scaled(leftPxBase), top: scaled(18) }}
                         >
-                          <div className="bg-gray-300" style={{ width: 1, height: scaled(16) }} />
-                          <div className="text-[11px] text-gray-600 -translate-x-1/2 mt-1" style={{ transform: 'translateX(-50%)' }}>
-                            {t.label}
+                          <div className="bg-gray-300 dark:bg-gray-600" style={{ width: 1, height: scaled(16) }} />
+                          <div className="text-[11px] text-gray-600 dark:text-gray-400 -translate-x-1/2 mt-1" style={{ transform: 'translateX(-50%)' }}>
+                            {tick.label}
                           </div>
                         </div>
                       )
@@ -822,7 +824,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                     const ev = eventsById.get(it.eventId)
                     const color = it.color || pickDefaultColorFromTags(ev?.tags) || undefined
                     const isSelected = selectedItemId === it.id
-                    const label = it.label || ev?.name || '(évènement introuvable)'
+                    const label = it.label || ev?.name || t('chronology.eventNotFound')
                     const mode = it.displayMode || 'header'
 
                     const customParagraph = (it.paragraph || '').trim()
@@ -834,8 +836,8 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                       <div
                         key={it.id}
                         className={[
-                          'absolute rounded-xl border bg-white',
-                          isSelected ? 'ring-2 ring-gray-900' : 'hover:shadow-sm',
+                          'absolute rounded-xl border bg-white dark:border-gray-700 dark:bg-gray-800',
+                          isSelected ? 'ring-2 ring-gray-900 dark:ring-gray-100' : 'hover:shadow-sm',
                         ].join(' ')}
                         style={{
                           left: scaled(it.x ?? 0),
@@ -851,7 +853,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                           className={[
                             'w-full px-3 py-2 text-left text-sm rounded-xl select-none',
                           ].join(' ')}
-                          title={it.noteHtml ? 'Annotation présente' : undefined}
+                          title={it.noteHtml ? t('chronology.annotationPresent') : undefined}
                           onPointerDown={e => {
                             setSelectedItemId(it.id)
                             startDragItem(e, it.id)
@@ -866,11 +868,11 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                             {/* Meta row: year + date */}
                             <div className="flex items-center gap-2 min-w-0">
                               {typeof year === 'number' && (
-                                <span className="text-[11px] text-gray-600 border rounded px-2 py-0.5">
+                                <span className="text-[11px] text-gray-600 dark:text-gray-400 border rounded px-2 py-0.5">
                                   {year}
                                 </span>
                               )}
-                              <div className="ml-auto text-[11px] text-gray-500 whitespace-nowrap">
+                              <div className="ml-auto text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                 {ev?.endDate ? `${ev.startDate} → ${ev.endDate}` : (ev?.startDate || '')}
                               </div>
                             </div>
@@ -878,16 +880,16 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                             {/* Tags (always visible, including paragraph mode) */}
                             {(ev?.tags || []).length > 0 && (
                               <div className="flex flex-wrap gap-1">
-                                {(ev?.tags || []).slice(0, 6).map(t => (
+                                {(ev?.tags || []).slice(0, 6).map(tag => (
                                   <span
-                                    key={t.id}
+                                    key={tag.id}
                                     className="text-[11px] px-2 py-0.5 rounded border"
                                     style={{
-                                      borderColor: t.color || '#e5e7eb',
-                                      backgroundColor: t.color ? `${t.color}22` : undefined,
+                                      borderColor: tag.color || '#e5e7eb',
+                                      backgroundColor: tag.color ? `${tag.color}22` : undefined,
                                     }}
                                   >
-                                    {t.name}
+                                    {tag.name}
                                   </span>
                                 ))}
                               </div>
@@ -895,7 +897,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
 
                             {/* Paragraph */}
                             {mode === 'paragraph' && (
-                              <div className="text-xs text-gray-700 whitespace-pre-wrap break-words">
+                              <div className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
                                 {paragraphText || '—'}
                               </div>
                             )}
@@ -908,7 +910,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
               </div>
 
               {!timeline.items.length && (
-                <div className="mt-4 text-sm text-gray-500">Aucun évènement sur la frise pour l’instant.</div>
+                <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">{t('chronology.noEventOnTimeline')}</div>
               )}
             </div>
           </div>
@@ -930,21 +932,21 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
           >
             <div className="absolute inset-0 bg-black/30" />
             <div className="absolute inset-0 flex items-center justify-center p-4">
-              <div className="w-full max-w-3xl rounded-2xl border bg-white shadow-lg overflow-hidden">
+              <div className="w-full max-w-3xl rounded-2xl border bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 overflow-hidden">
                 <div className="px-5 py-4 border-b flex items-start gap-3">
                   <div className="min-w-0">
-                    <div className="text-sm text-gray-500">Édition</div>
-                    <div className="font-semibold text-gray-900 break-words">{ev?.name || '(introuvable)'}</div>
-                    <div className="text-xs text-gray-600 mt-0.5">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{t('chronology.edition')}</div>
+                    <div className="font-semibold text-gray-900 dark:text-gray-100 break-words">{ev?.name || t('chronology.notFound')}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
                       {ev ? (ev.endDate ? `${ev.startDate} → ${ev.endDate}` : ev.startDate) : ''}
                     </div>
                   </div>
                   <div className="ml-auto flex gap-2">
                     <button className="btn-danger" onClick={() => { removeItem(selectedItem.id); setIsItemModalOpen(false) }}>
-                      Retirer
+                      {t('chronology.remove')}
                     </button>
                     <button className="btn-secondary" onClick={() => setIsItemModalOpen(false)}>
-                      Fermer
+                      {t('chronology.close')}
                     </button>
                   </div>
                 </div>
@@ -952,17 +954,17 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                 <div className="p-5 space-y-4 max-h-[72vh] overflow-y-auto">
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <div className="text-sm font-medium text-gray-700">Libellé</div>
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('chronology.label')}</div>
                       <input
-                        className="border rounded px-3 py-2 w-full"
+                        className="border rounded px-3 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 w-full"
                         value={selectedItem.label || ''}
                         onChange={e => updateItem(selectedItem.id, { label: e.target.value })}
-                        placeholder={ev?.name || 'Libellé'}
+                        placeholder={ev?.name || t('chronology.label')}
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <div className="text-sm font-medium text-gray-700">Couleur</div>
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('chronology.color')}</div>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
@@ -974,7 +976,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                           className="btn-secondary"
                           onClick={() => updateItem(selectedItem.id, { color: undefined })}
                         >
-                          Réinitialiser
+                          {t('chronology.reset')}
                         </button>
                       </div>
                     </div>
@@ -982,24 +984,24 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
 
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <div className="text-sm font-medium text-gray-700">Affichage sur la frise</div>
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('chronology.displayOnTimeline')}</div>
                       <select
-                        className="border rounded px-3 py-2 w-full"
+                        className="border rounded px-3 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 w-full"
                         value={selectedItem.displayMode || 'header'}
                         onChange={e => updateItem(selectedItem.id, { displayMode: e.target.value as any })}
                       >
-                        <option value="header">Entête</option>
-                        <option value="paragraph">Paragraphe</option>
+                        <option value="header">{t('chronology.headerMode')}</option>
+                        <option value="paragraph">{t('chronology.paragraphMode')}</option>
                       </select>
-                      <div className="text-xs text-gray-500">
-                        Entête: titre, date, tags. Paragraphe: extrait max 500 caractères.
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {t('chronology.displayModeDesc')}
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <div className="text-sm font-medium text-gray-700">Paragraphe personnalisé</div>
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Paragraphe personnalisé</div>
                       <textarea
-                        className="border rounded px-3 py-2 w-full min-h-[96px]"
+                        className="border rounded px-3 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 w-full min-h-[96px]"
                         placeholder="Si vide: premier paragraphe de la description de l’évènement"
                         value={selectedItem.paragraph || ''}
                         onChange={e => updateItem(selectedItem.id, { paragraph: e.target.value })}
@@ -1009,7 +1011,7 @@ export function ChronologyPage({ projectId }: { projectId: string }) {
                   </div>
 
                   <div className="space-y-1">
-                    <div className="text-sm font-medium text-gray-700">Annotation (richtext)</div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('chronology.annotation')}</div>
                     <Editor
                       licenseKey="gpl"
                       tinymceScriptSrc="/tinymce/tinymce.min.js"

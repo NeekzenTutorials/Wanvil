@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { apiGet, apiPut } from '../../utils/fetcher'
 import type { CharacterTemplate, TemplateField } from '../../types/character'
 import { Editor } from '@tinymce/tinymce-react'
+import { useTranslation } from '../../i18n'
 type Tag = { id:string; name:string; color?:string }
 
 const TINYMCE_API_KEY = import.meta.env.VITE_TINYMCE_API_KEY || '';
@@ -9,6 +10,7 @@ const TINYMCE_API_KEY = import.meta.env.VITE_TINYMCE_API_KEY || '';
 export function CharacterForm({ characterId, collectionId, onClose }:{
   characterId:string, collectionId:string, onClose:()=>void
 }) {
+  const { t } = useTranslation()
   const [template, setTemplate] = useState<CharacterTemplate | null>(null)
   const [data, setData] = useState<any>(null) // personnage (builtin + content)
   const [allTags, setAllTags] = useState<Tag[]>([])
@@ -55,25 +57,25 @@ export function CharacterForm({ characterId, collectionId, onClose }:{
 
   return (
     <div className="fixed inset-0 bg-black/40 flex">
-      <div className="ml-auto h-full w-full max-w-3xl bg-white flex flex-col">
-        <div className="p-4 border-b flex items-center gap-2">
-          <h3 className="font-semibold">Éditer {data.firstname} {data.lastname}</h3>
+      <div className="ml-auto h-full w-full max-w-3xl bg-white dark:bg-gray-800 flex flex-col">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+          <h3 className="font-semibold dark:text-gray-100">{t('common.edit')} {data.firstname} {data.lastname}</h3>
           <div className="ml-auto flex gap-2">
-            <button className="btn-secondary" onClick={onClose}>Annuler</button>
-            <button className="btn-primary" onClick={save}>Enregistrer</button>
+            <button className="btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
+            <button className="btn-primary" onClick={save}>{t('common.save')}</button>
           </div>
         </div>
         <div className="p-4 space-y-4 overflow-y-auto">
           {/* champs natifs */}
           <div className="grid sm:grid-cols-2 gap-3">
-            <input className="border rounded px-3 py-2" placeholder="Prénom" value={data.firstname} onChange={e=>setData((p:any)=>({...p, firstname:e.target.value}))}/>
-            <input className="border rounded px-3 py-2" placeholder="Nom" value={data.lastname} onChange={e=>setData((p:any)=>({...p, lastname:e.target.value}))}/>
-            <input className="border rounded px-3 py-2" placeholder="Âge" type="number" value={data.age ?? ''} onChange={e=>setData((p:any)=>({...p, age: e.target.value ? Number(e.target.value) : null}))}/>
-            <input className="border rounded px-3 py-2" placeholder="Naissance" type="date" value={data.birthdate ?? ''} onChange={e=>setData((p:any)=>({...p, birthdate:e.target.value || null}))}/>
-            <input className="border rounded px-3 py-2 col-span-full" placeholder="URL avatar" value={data.avatarUrl ?? ''} onChange={e=>setData((p:any)=>({...p, avatarUrl:e.target.value || null}))}/>
+            <input className="border border-gray-200 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder={t('characters.firstname')} value={data.firstname} onChange={e=>setData((p:any)=>({...p, firstname:e.target.value}))}/>
+            <input className="border border-gray-200 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder={t('characters.lastname')} value={data.lastname} onChange={e=>setData((p:any)=>({...p, lastname:e.target.value}))}/>
+            <input className="border border-gray-200 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder={t('characters.age')} type="number" value={data.age ?? ''} onChange={e=>setData((p:any)=>({...p, age: e.target.value ? Number(e.target.value) : null}))}/>
+            <input className="border border-gray-200 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder={t('characters.birthdate')} type="date" value={data.birthdate ?? ''} onChange={e=>setData((p:any)=>({...p, birthdate:e.target.value || null}))}/>
+            <input className="border border-gray-200 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 dark:text-gray-100 col-span-full" placeholder="URL avatar" value={data.avatarUrl ?? ''} onChange={e=>setData((p:any)=>({...p, avatarUrl:e.target.value || null}))}/>
           </div>
           <div className="space-y-1">
-            <div className="text-sm font-medium text-gray-700">Tags</div>
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Tags</div>
             <div className="flex gap-2 flex-wrap">
               {allTags.map(t => {
                 const on = selectedTagIds.includes(t.id)
@@ -132,7 +134,7 @@ function Field({ field, value, onChange }:{ field:TemplateField; value:any; onCh
 
 const Labeled = ({label, children}:{label:string; children:any}) => (
   <div className="space-y-1">
-    <div className="text-sm font-medium text-gray-700">{label}</div>
+    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</div>
     {children}
   </div>
 )

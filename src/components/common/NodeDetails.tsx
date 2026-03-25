@@ -7,6 +7,7 @@ import { CharacterView } from '../characters/CharacterView'
 import { ItemView } from '../items/ItemView'
 import { PlaceView } from '../places/PlaceView'
 import { EventView } from '../events/EventView'
+import { useTranslation } from '../../i18n'
 
 interface NodeDetailsProps {
   selected: SelectedNode | null
@@ -20,6 +21,7 @@ type TomeDetail = {
 }
 
 export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) => {
+  const { t } = useTranslation()
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState('')
@@ -88,7 +90,7 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
 
   const removeNode = async () => {
     if (!selected) return
-    if (!confirm('Supprimer définitivement ?')) return
+    if (!confirm(t('nodeDetails.confirmDelete'))) return
     await apiDelete(`${selected.level}s/${selected.id}`)
     onRefreshHierarchy()
   }
@@ -106,7 +108,7 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
 
   // --------- Actions chapitres --------------------------------------------
   const createChapter = async () => {
-    const title = prompt('Titre du chapitre ?')?.trim() || 'Nouveau chapitre'
+    const title = prompt(t('nodeDetails.chapterTitlePrompt'))?.trim() || t('nodeDetails.newChapter')
     if (!selected) return
     const newChap = await apiPost<{ id: string }>(`tomes/${selected.id}/chapters`, { title, content: '' })
     const fresh = await apiGet<TomeDetail>(`tomes/${selected.id}`)
@@ -117,7 +119,7 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
 
   const deleteChapter = async () => {
     if (!selected || !selectedChapterId) return
-    if (!confirm('Supprimer ce chapitre ?')) return
+    if (!confirm(t('nodeDetails.deleteChapter'))) return
     await apiDelete(`chapters/${selectedChapterId}`)
     const fresh = await apiGet<TomeDetail>(`tomes/${selected.id}`)
     setData(fresh)
@@ -171,7 +173,7 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
   const exportPdf = async () => {
     if (!selected || selected.level !== 'tome') return
     const res = await fetch(`/api/tomes/${selected.id}/export/pdf`, { credentials: 'include', headers: { Accept: 'application/pdf' } })
-    if (!res.ok) { alert('Export PDF échoué'); return }
+    if (!res.ok) { alert(t('nodeDetails.pdfFailed')); return }
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -189,31 +191,31 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
   return (
     <div className="space-y-6">
       {/* --- En-tête du nœud (nom + actions globales) ---------------------- */}
-      <div className="rounded-2xl border bg-white shadow-sm">
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
         <div className="p-4 sm:p-5 flex flex-col gap-3 sm:flex-row sm:items-center">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="border rounded-lg px-3 py-2 w-full sm:max-w-md"
-            placeholder={isTome ? 'Nom du tome' : 'Nom'}
+            className="border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 w-full sm:max-w-md bg-white dark:bg-gray-700 dark:text-gray-100"
+            placeholder={isTome ? t('nodeDetails.tomeName') : 'Nom'}
           />
           <div className="flex gap-2 sm:ml-auto">
-            <button onClick={saveNode} className="btn-primary">Enregistrer</button>
+            <button onClick={saveNode} className="btn-primary">{t('common.save')}</button>
             {isTome && (
               <button onClick={exportPdf} className="btn-secondary inline-flex items-center gap-2">
-                <FileDown className="w-4 h-4" /> Exporter PDF
+                <FileDown className="w-4 h-4" /> {t('nodeDetails.exportPdf')}
               </button>
             )}
-            <button onClick={removeNode} className="btn-danger">Supprimer</button>
+            <button onClick={removeNode} className="btn-danger">{t('common.delete')}</button>
           </div>
         </div>
       </div>
 
       {/* --- Zone Tome : barre chapitres + éditeur ------------------------- */}
       {isTome && (
-        <section className="rounded-2xl border bg-white shadow-sm">
+        <section className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
           {/* Barre chapitres (sticky) */}
-          <div className="sticky top-0 z-10 border-b bg-white/80 backdrop-blur p-3 sm:p-4">
+          <div className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur p-3 sm:p-4">
             <div className="flex flex-wrap items-center gap-2">
               <button onClick={() => currentIndex > 0 && setSelectedChapterId(chapters[currentIndex - 1].id)}
                       className="btn-muted" disabled={currentIndex <= 0}>
@@ -221,13 +223,13 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
               </button>
 
               <select
-                className="border rounded-lg px-2 py-2 min-w-[220px] flex-1"
+                className="border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-2 min-w-[220px] flex-1 bg-white dark:bg-gray-700 dark:text-gray-100"
                 value={selectedChapterId ?? ''}
                 onChange={(e) => { setSelectedChapterId(e.target.value); setIsEditingTitle(false) }}
               >
                 {chapters.map((c: any, i: number) => (
                   <option key={c.id} value={c.id}>
-                    {`Chapitre ${i + 1} — ${c.title}`}
+                    {`${t('nodeDetails.chapterLabel')} ${i + 1} — ${c.title}`}
                   </option>
                 ))}
               </select>
@@ -237,17 +239,17 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
                 <ChevronRight className="w-4 h-4" />
               </button>
 
-              <div className="h-6 w-px bg-gray-200 mx-1" />
+              <div className="h-6 w-px bg-gray-200 dark:bg-gray-600 mx-1" />
 
               {/* Titre courant + édition inline */}
               <div className="flex items-center gap-2 flex-1 min-w-[200px]">
                 {!isEditingTitle ? (
                   <>
-                    <div className="truncate text-sm sm:text-base font-medium text-gray-900">
-                      {currentIndex >= 0 ? `Chapitre ${currentIndex + 1} — ${currentChapter?.title ?? ''}` : 'Aucun chapitre'}
+                    <div className="truncate text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                      {currentIndex >= 0 ? `${t('nodeDetails.chapterLabel')} ${currentIndex + 1} — ${currentChapter?.title ?? ''}` : t('nodeDetails.noChapter')}
                     </div>
                     {!!currentChapter && (
-                      <button onClick={beginEditTitle} className="btn-muted" title="Renommer">
+                      <button onClick={beginEditTitle} className="btn-muted" title={t('common.rename')}>
                         <Pencil className="w-4 h-4" />
                       </button>
                     )}
@@ -258,7 +260,7 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
                       autoFocus
                       value={draftTitle}
                       onChange={(e) => setDraftTitle(e.target.value)}
-                      className="border rounded-lg px-2 py-1 w-full"
+                      className="border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1 w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                       placeholder="Titre du chapitre"
                     />
                     <button onClick={saveChapterTitle} className="btn-primary p-2" title="Valider">
@@ -271,7 +273,7 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
                 )}
               </div>
 
-              <div className="h-6 w-px bg-gray-200 mx-1" />
+              <div className="h-6 w-px bg-gray-200 dark:bg-gray-600 mx-1" />
 
               {/* Réordonner / Créer / Supprimer */}
               <div className="flex items-center gap-2">
@@ -285,7 +287,7 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
                   <Plus className="w-4 h-4" /> Nouveau
                 </button>
                 <button onClick={deleteChapter} className="btn-danger inline-flex items-center gap-1" disabled={!selectedChapterId}>
-                  <Trash2 className="w-4 h-4" /> Supprimer
+                  <Trash2 className="w-4 h-4" /> {t('common.delete')}
                 </button>
               </div>
             </div>
@@ -299,7 +301,7 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
                 onSaved={() => {/* tu peux afficher un toast si besoin */}}
               />
             ) : (
-              <p className="text-sm text-gray-500">Aucun chapitre. Créez-en un pour commencer.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('nodeDetails.noChapter')}</p>
             )}
           </div>
         </section>
@@ -307,13 +309,13 @@ export const NodeDetails = ({ selected, onRefreshHierarchy }: NodeDetailsProps) 
 
       {/* --- Enfants pour Collection/Saga ---------------------------------- */}
       {!isTome && (
-        <section className="rounded-2xl border bg-white shadow-sm p-4 sm:p-5">
+        <section className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-4 sm:p-5">
           <h3 className="font-semibold mb-2">
-            {selected.level === 'collection' ? 'Sagas' : 'Tomes'}
+            {selected.level === 'collection' ? t('nodeDetails.sagas') : t('nodeDetails.tomes')}
           </h3>
 
           {children.length ? (
-            <ul className="list-disc ml-5 space-y-1 text-gray-800">
+            <ul className="list-disc ml-5 space-y-1 text-gray-800 dark:text-gray-200">
               {children.map((c) => <li key={c.id}>{c.name}</li>)}
             </ul>
           ) : (

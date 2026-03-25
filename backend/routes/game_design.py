@@ -5,7 +5,7 @@ from ..models import GameDesignComponentModel
 
 game_design_bp = Blueprint('game_design', __name__, url_prefix='/api/projects/<project_id>/game-design')
 
-VALID_TYPES = {'map-editor'}
+VALID_TYPES = {'map-editor', 'task-board'}
 
 
 @game_design_bp.route('', methods=['GET'])

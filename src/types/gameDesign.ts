@@ -79,7 +79,7 @@ export interface MapState {
   camera: { x: number; y: number; zoom: number }
 }
 
-export type GameDesignComponent = 'map-editor'
+export type GameDesignComponent = 'map-editor' | 'task-board'
 
 /** Record stored in the backend for an enabled game design component */
 export interface GameDesignComponentRecord {

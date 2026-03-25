@@ -3,6 +3,7 @@
 
 import { useState, type FC } from 'react'
 import type { MapState } from '../../../types/gameDesign'
+import { useTranslation } from '../../../i18n'
 import {
   Plus, Trash2, Eye, EyeOff, Layers, MapPinned, Pencil, Check,
 } from 'lucide-react'
@@ -24,6 +25,7 @@ export const ZoneLayerPanel: FC<Props> = ({
   onAddZone, onRenameZone, onDeleteZone, onSetActiveZone,
   onAddLayer, onToggleLayerVisible, onSetActiveLayer, onDeleteLayer,
 }) => {
+  const { t } = useTranslation()
   const [newZoneName, setNewZoneName] = useState('')
   const [editingZone, setEditingZone] = useState<string | null>(null)
   const [editZoneName, setEditZoneName] = useState('')
@@ -32,11 +34,11 @@ export const ZoneLayerPanel: FC<Props> = ({
   const activeZone = state.zones.find(z => z.id === state.activeZoneId)
 
   return (
-    <div className="w-64 bg-white border-l flex flex-col overflow-y-auto">
+    <div className="w-64 bg-white dark:bg-gray-800 border-l dark:border-gray-700 flex flex-col overflow-y-auto">
       {/* ─── Zones ─── */}
-      <div className="p-3 border-b">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1 mb-2">
-          <MapPinned className="w-3.5 h-3.5" /> Zones
+      <div className="p-3 border-b dark:border-gray-700">
+        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1 mb-2">
+          <MapPinned className="w-3.5 h-3.5" /> {t('mapEditor.zones')}
         </h3>
         <ul className="space-y-1">
           {state.zones.map(z => (
@@ -46,7 +48,7 @@ export const ZoneLayerPanel: FC<Props> = ({
                   <input
                     value={editZoneName}
                     onChange={e => setEditZoneName(e.target.value)}
-                    className="flex-1 text-xs border rounded px-1.5 py-0.5"
+                    className="flex-1 text-xs border dark:border-gray-600 rounded px-1.5 py-0.5 dark:bg-gray-700 dark:text-gray-100"
                     autoFocus
                   />
                   <button type="submit" className="p-0.5 text-green-600"><Check className="w-3.5 h-3.5" /></button>
@@ -55,14 +57,14 @@ export const ZoneLayerPanel: FC<Props> = ({
                 <>
                   <button
                     onClick={() => onSetActiveZone(z.id)}
-                    className={`flex-1 text-left text-xs px-2 py-1 rounded truncate ${z.id === state.activeZoneId ? 'bg-indigo-50 text-indigo-600 font-medium' : 'hover:bg-gray-50'}`}
+                    className={`flex-1 text-left text-xs px-2 py-1 rounded truncate ${z.id === state.activeZoneId ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                   >
                     {z.name}
                   </button>
                   <button
                     onClick={() => { setEditingZone(z.id); setEditZoneName(z.name) }}
-                    className="p-0.5 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600"
-                    title="Renommer"
+                    className="p-0.5 opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                    title={t('common.rename')}
                   >
                     <Pencil className="w-3 h-3" />
                   </button>
@@ -70,7 +72,7 @@ export const ZoneLayerPanel: FC<Props> = ({
                     <button
                       onClick={() => onDeleteZone(z.id)}
                       className="p-0.5 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600"
-                      title="Supprimer"
+                      title={t('common.delete')}
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -87,8 +89,8 @@ export const ZoneLayerPanel: FC<Props> = ({
           <input
             value={newZoneName}
             onChange={e => setNewZoneName(e.target.value)}
-            placeholder="Nouvelle zone..."
-            className="flex-1 text-xs border rounded px-2 py-1"
+            placeholder={t('mapEditor.newZone')}
+            className="flex-1 text-xs border dark:border-gray-600 rounded px-2 py-1 dark:bg-gray-700 dark:text-gray-100"
           />
           <button type="submit" className="p-1 text-indigo-500 hover:text-indigo-700"><Plus className="w-3.5 h-3.5" /></button>
         </form>
@@ -96,8 +98,8 @@ export const ZoneLayerPanel: FC<Props> = ({
 
       {/* ─── Layers ─── */}
       <div className="p-3 flex-1">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1 mb-2">
-          <Layers className="w-3.5 h-3.5" /> Couches – {activeZone?.name ?? ''}
+        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1 mb-2">
+          <Layers className="w-3.5 h-3.5" /> {t('mapEditor.layers')} {activeZone?.name ?? ''}
         </h3>
         {activeZone && (
           <>
@@ -106,14 +108,14 @@ export const ZoneLayerPanel: FC<Props> = ({
                 <li key={l.index} className="group flex items-center gap-1">
                   <button
                     onClick={() => onSetActiveLayer(l.index)}
-                    className={`flex-1 text-left text-xs px-2 py-1 rounded truncate ${l.index === state.activeLayerIndex ? 'bg-indigo-50 text-indigo-600 font-medium' : 'hover:bg-gray-50'}`}
+                    className={`flex-1 text-left text-xs px-2 py-1 rounded truncate ${l.index === state.activeLayerIndex ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                   >
                     {l.name}
                   </button>
                   <button
                     onClick={() => onToggleLayerVisible(state.activeZoneId, l.index)}
-                    className="p-0.5 text-gray-400 hover:text-gray-600"
-                    title={l.visible ? 'Masquer' : 'Afficher'}
+                    className="p-0.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                    title={l.visible ? t('mapEditor.hide') : t('mapEditor.show')}
                   >
                     {l.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                   </button>
@@ -121,7 +123,7 @@ export const ZoneLayerPanel: FC<Props> = ({
                     <button
                       onClick={() => onDeleteLayer(state.activeZoneId, l.index)}
                       className="p-0.5 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600"
-                      title="Supprimer"
+                      title={t('common.delete')}
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -136,8 +138,8 @@ export const ZoneLayerPanel: FC<Props> = ({
               <input
                 value={newLayerName}
                 onChange={e => setNewLayerName(e.target.value)}
-                placeholder="Nouvel étage..."
-                className="flex-1 text-xs border rounded px-2 py-1"
+                placeholder={t('mapEditor.newFloor')}
+                className="flex-1 text-xs border dark:border-gray-600 rounded px-2 py-1 dark:bg-gray-700 dark:text-gray-100"
               />
               <button type="submit" className="p-1 text-indigo-500 hover:text-indigo-700"><Plus className="w-3.5 h-3.5" /></button>
             </form>
