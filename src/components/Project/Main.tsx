@@ -31,15 +31,24 @@ interface Props {
   activeGdRecordId?: string | null
   enabledGdComponents?: GameDesignComponent[]
   onAddGameDesignComponent?: (c: GameDesignComponent) => void
+  gddEnabled?: boolean
+  onToggleGdd?: () => void
+  onEditGdd?: () => void
+  onViewGdd?: () => void
 }
 
-export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refreshTree, projectId, activeGameDesignComponent, activeGdRecordId, enabledGdComponents = [], onAddGameDesignComponent }) => {
+export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refreshTree, projectId, activeGameDesignComponent, activeGdRecordId, enabledGdComponents = [], onAddGameDesignComponent, gddEnabled, onToggleGdd, onEditGdd, onViewGdd }) => {
   const { t } = useTranslation()
 
   if (active === 'settings') {
     return (
       <main className="flex-1 p-8 overflow-y-auto dark:bg-gray-900">
-        <SettingsPage />
+        <SettingsPage
+          gddEnabled={gddEnabled}
+          onToggleGdd={onToggleGdd}
+          onEditGdd={onEditGdd}
+          onViewGdd={onViewGdd}
+        />
       </main>
     )
   }

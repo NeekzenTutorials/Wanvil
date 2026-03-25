@@ -10,7 +10,11 @@ import { ProjectSidebar } from '../components/Project/Sidebar'
 import type { SidebarSections, CharactersSubView } from '../types/sidebarSections'
 import type { SelectedNode } from '../types/selectedNodes'
 import type { GameDesignComponent, GameDesignComponentRecord } from '../types/gameDesign'
+import type { GddData } from '../types/gdd'
+import { DEFAULT_GDD } from '../types/gdd'
 import { ConfirmModal } from '../components/common/ConfirmModal'
+import { GddEditModal } from '../components/settings/GddEditModal'
+import { GddViewModal } from '../components/settings/GddViewModal'
 import { Menu, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from '../i18n'
 
@@ -35,6 +39,35 @@ const ProjectDashboard: FC = () => {
   const [gdRecords, setGdRecords] = useState<GameDesignComponentRecord[]>([])
   const [activeGameDesignComponent, setActiveGameDesignComponent] = useState<GameDesignComponent | null>(null)
   const [pendingRemove, setPendingRemove] = useState<GameDesignComponent | null>(null)
+
+  // GDD state (localStorage-backed)
+  const [gddEnabled, setGddEnabled] = useState<boolean>(() => {
+    return localStorage.getItem(`wv:gdd:enabled:${projectId}`) === 'true'
+  })
+  const [gddData, setGddData] = useState<GddData>(() => {
+    const raw = localStorage.getItem(`wv:gdd:data:${projectId}`)
+    if (raw) {
+      try { return { ...DEFAULT_GDD, ...JSON.parse(raw) } } catch { /* ignore */ }
+    }
+    return { ...DEFAULT_GDD }
+  })
+  const [showGddEdit, setShowGddEdit] = useState(false)
+  const [showGddView, setShowGddView] = useState(false)
+
+  // Persist GDD enabled state
+  useEffect(() => {
+    if (projectId) localStorage.setItem(`wv:gdd:enabled:${projectId}`, String(gddEnabled))
+  }, [gddEnabled, projectId])
+
+  const handleGddSave = useCallback((data: GddData) => {
+    setGddData(data)
+    if (projectId) localStorage.setItem(`wv:gdd:data:${projectId}`, JSON.stringify(data))
+    setShowGddEdit(false)
+  }, [projectId])
+
+  const handleToggleGdd = useCallback(() => {
+    setGddEnabled(prev => !prev)
+  }, [])
 
   // largeur sidebar (persistée)
   const [sidebarW, setSidebarW] = useState<number>(() => {
@@ -164,7 +197,11 @@ const ProjectDashboard: FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <ProjectHeader projectName={project?.name ?? projectId ?? ''} />
+      <ProjectHeader
+        projectName={project?.name ?? projectId ?? ''}
+        gddEnabled={gddEnabled}
+        onGddClick={() => setShowGddView(true)}
+      />
 
       {/* Bouton burger visible en mobile */}
       <button
@@ -292,6 +329,10 @@ const ProjectDashboard: FC = () => {
           activeGdRecordId={activeGdRecord?.id ?? null}
           enabledGdComponents={gameDesignComponents}
           onAddGameDesignComponent={handleAddGameDesignComponent}
+          gddEnabled={gddEnabled}
+          onToggleGdd={handleToggleGdd}
+          onEditGdd={() => setShowGddEdit(true)}
+          onViewGdd={() => setShowGddView(true)}
         />
       </div>
 
@@ -303,6 +344,20 @@ const ProjectDashboard: FC = () => {
         confirmLabel={t('common.delete')}
         onConfirm={handleConfirmRemove}
         onCancel={() => setPendingRemove(null)}
+      />
+
+      {/* GDD Modals */}
+      <GddEditModal
+        open={showGddEdit}
+        data={gddData}
+        onSave={handleGddSave}
+        onClose={() => setShowGddEdit(false)}
+      />
+      <GddViewModal
+        open={showGddView}
+        data={gddData}
+        onClose={() => setShowGddView(false)}
+        onEdit={() => { setShowGddView(false); setShowGddEdit(true) }}
       />
     </div>
   )

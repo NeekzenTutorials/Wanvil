@@ -9,3 +9,26 @@
 .dark {
   color-scheme: dark;
 }
+
+/* ── Home page animations ──────────────────────────────────── */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-30px) scale(1.05); }
+}
+@keyframes float-slow-reverse {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(20px) scale(0.97); }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float-slow         { animation: float-slow 8s ease-in-out infinite; }
+.animate-float-slow-reverse { animation: float-slow-reverse 10s ease-in-out infinite; }
+.animate-fade-in-up         { animation: fade-in-up .7s ease-out both; }
+
+.animation-delay-100 { animation-delay: .1s; }
+.animation-delay-200 { animation-delay: .2s; }
+.animation-delay-300 { animation-delay: .3s; }
+.animation-delay-400 { animation-delay: .45s; }

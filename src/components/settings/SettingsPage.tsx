@@ -1,4 +1,4 @@
-import { Globe, Sun, Moon, Monitor } from 'lucide-react'
+import { Globe, Sun, Moon, Monitor, FileText, Pencil, Eye } from 'lucide-react'
 import { useTranslation, type Lang } from '../../i18n'
 import { useTheme, type Theme } from '../../theme'
 
@@ -13,7 +13,14 @@ const THEMES: { code: Theme; icon: typeof Sun; labelKey: 'settings.themeLight' |
   { code: 'system', icon: Monitor, labelKey: 'settings.themeSystem' },
 ]
 
-export default function SettingsPage() {
+interface Props {
+  gddEnabled?: boolean
+  onToggleGdd?: () => void
+  onEditGdd?: () => void
+  onViewGdd?: () => void
+}
+
+export default function SettingsPage({ gddEnabled, onToggleGdd, onEditGdd, onViewGdd }: Props) {
   const { lang, setLang, t } = useTranslation()
   const { theme, setTheme } = useTheme()
 
@@ -74,6 +81,56 @@ export default function SettingsPage() {
           })}
         </div>
       </section>
+
+      {/* GDD */}
+      {onToggleGdd && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+            <FileText className="w-5 h-5" />
+            {t('gdd.sectionTitle')}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('gdd.sectionDesc')}</p>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onToggleGdd}
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                gddEnabled ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
+              role="switch"
+              aria-checked={gddEnabled}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  gddEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {gddEnabled ? t('gdd.enabled') : t('gdd.disabled')}
+            </span>
+          </div>
+
+          {gddEnabled && (
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={onEditGdd}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition"
+              >
+                <Pencil className="w-4 h-4" />
+                {t('gdd.editBtn')}
+              </button>
+              <button
+                onClick={onViewGdd}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+              >
+                <Eye className="w-4 h-4" />
+                {t('gdd.viewBtn')}
+              </button>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   )
 }
