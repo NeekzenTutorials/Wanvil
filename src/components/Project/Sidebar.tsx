@@ -4,10 +4,12 @@ import Hierarchy from '../common/Hierarchy'
 import { SidebarButton } from '../common/SidebarButton'
 import {
   BookOpenText, Users, ListTree, Book, Clock, Cog,
-  LayoutTemplate, Calendar, BarChart3, Tag as TagIcon, X
+  LayoutTemplate, Calendar, BarChart3, Tag as TagIcon, X,
+  Gamepad2, Map as MapIcon, Plus
 } from 'lucide-react'
 import type { SidebarSections, CharactersSubView } from '../../types/sidebarSections'
 import type { SelectedNode } from '../../types/selectedNodes'
+import type { GameDesignComponent } from '../../types/gameDesign'
 
 interface ProjectSidebarProps {
   active: SidebarSections
@@ -19,11 +21,21 @@ interface ProjectSidebarProps {
   className?: string
   style?: CSSProperties
   onCloseMobile?: () => void
+  gameDesignComponents?: GameDesignComponent[]
+  onShowCatalog?: () => void
+  onRemoveGameDesignComponent?: (c: GameDesignComponent) => void
+  onSelectGameDesignComponent?: (c: GameDesignComponent) => void
+  activeGameDesignComponent?: GameDesignComponent | null
 }
+
+const GD_AVAILABLE: { key: GameDesignComponent; label: string; icon: typeof MapIcon }[] = [
+  { key: 'map-editor', label: 'Éditeur de Map 2D', icon: MapIcon },
+]
 
 export const ProjectSidebar: FC<ProjectSidebarProps> = ({
   active, setActive, charactersView, setCharactersView, onSelectNode, onRefreshTree,
-  className = '', style, onCloseMobile
+  className = '', style, onCloseMobile,
+  gameDesignComponents = [], onShowCatalog, onRemoveGameDesignComponent, onSelectGameDesignComponent, activeGameDesignComponent
 }) => {
   const subItemClass = (on:boolean) =>
     `w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm transition
@@ -76,6 +88,55 @@ export const ProjectSidebar: FC<ProjectSidebarProps> = ({
           active={active === 'analytics'} onClick={() => setActive('analytics')} />
         <SidebarButton icon={<Cog className="w-4 h-4" />} label="Paramètres"
           active={active === 'settings'} onClick={() => setActive('settings')} />
+
+        <div className="mt-3 mb-1 text-xs font-semibold text-gray-500 px-2 uppercase tracking-wide flex items-center justify-between">
+          <span>Game Design</span>
+          {onShowCatalog && (
+            <button
+              onClick={() => {
+                onShowCatalog()
+                setActive('game-design-catalog')
+              }}
+              className="p-0.5 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600"
+              title="Ajouter un composant Game Design"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+        {gameDesignComponents.map(c => {
+          const meta = GD_AVAILABLE.find(g => g.key === c)
+          if (!meta) return null
+          const Icon = meta.icon
+          const isActive = active === 'game-design' && activeGameDesignComponent === c
+          return (
+            <div key={c} className="group flex items-center">
+              <div className="flex-1">
+                <SidebarButton
+                  icon={<Icon className="w-4 h-4" />}
+                  label={meta.label}
+                  active={isActive}
+                  onClick={() => {
+                    setActive('game-design')
+                    onSelectGameDesignComponent?.(c)
+                  }}
+                />
+              </div>
+              {onRemoveGameDesignComponent && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onRemoveGameDesignComponent(c) }}
+                  className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 text-gray-400 hover:text-red-500 transition-opacity"
+                  title="Supprimer ce composant"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          )
+        })}
+        {gameDesignComponents.length === 0 && (
+          <p className="text-xs text-gray-400 px-3 py-1 italic">Cliquez + pour ajouter</p>
+        )}
       </nav>
 
       {/* Panneau contextuel */}
@@ -148,8 +209,16 @@ export const ProjectSidebar: FC<ProjectSidebarProps> = ({
               </li>
             </ul>
             <p className="text-xs text-gray-500 mt-3"> Les tags des évènements sont isolés (scope <code>event</code>). </p> </div> )}
+
+          {active === 'game-design' && activeGameDesignComponent === 'map-editor' && (
+            <div className="px-2">
+              <p className="text-xs text-gray-500 mt-1">
+                Créez des cartes 2D avec des salles, des autocollants et plusieurs zones/étages.
+              </p>
+            </div>
+          )}
             
-            {active !== 'redaction' && active !== 'characters' && active !== 'lore-places' && active !== 'lore-places-tags' && active !== 'lore-items' && active !== 'lore-items-tags' && (
+            {active !== 'redaction' && active !== 'characters' && active !== 'lore-places' && active !== 'lore-places-tags' && active !== 'lore-items' && active !== 'lore-items-tags' && active !== 'game-design' && (
               <p className="text-sm text-gray-500 px-2">Sélectionnez un élément du menu.</p> )} 
             </div> 
           </aside>

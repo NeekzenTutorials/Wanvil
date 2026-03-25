@@ -11,6 +11,7 @@ class Project(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
     collections = db.relationship('Collection', back_populates='project', cascade='all, delete-orphan')
+    game_design_components = db.relationship('GameDesignComponentModel', back_populates='project', cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -313,6 +314,32 @@ class CollectionTimeline(db.Model):
         return {
             'id': self.id,
             'collectionId': self.collection_id,
+            'data': self.data or {},
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
+            'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class GameDesignComponentModel(db.Model):
+    __tablename__ = 'game_design_components'
+    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    project_id = db.Column(db.String, db.ForeignKey('projects.id'), nullable=False)
+    component_type = db.Column(db.String(100), nullable=False)  # e.g. 'map-editor'
+    data = db.Column(db.JSON, nullable=True, default=dict)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    project = db.relationship('Project', back_populates='game_design_components')
+
+    __table_args__ = (
+        db.UniqueConstraint('project_id', 'component_type', name='uq_project_component'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'projectId': self.project_id,
+            'componentType': self.component_type,
             'data': self.data or {},
             'createdAt': self.created_at.isoformat() if self.created_at else None,
             'updatedAt': self.updated_at.isoformat() if self.updated_at else None,

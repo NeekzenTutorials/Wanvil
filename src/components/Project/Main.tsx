@@ -1,6 +1,7 @@
 import type { FC } from 'react'
 import type { SidebarSections, CharactersSubView } from '../../types/sidebarSections'
 import type { SelectedNode } from '../../types/selectedNodes'
+import type { GameDesignComponent } from '../../types/gameDesign'
 import { NodeDetails } from '../common/NodeDetails'
 import { CharactersPage } from '../characters/CharactersPage'
 import { CharactersTemplatePage } from '../characters/CharactersTemplatePage'
@@ -14,6 +15,8 @@ import { EventsPage } from '../events/EventsPage'
 import { EventsTagsManagerPage } from '../events/EventsTagsManagerPage'
 import { AnalyticsPage } from '../analytics/AnalyticsPage'
 import { ChronologyPage } from '../chronology/ChronologyPage'
+import { MapEditorPage } from '../gameDesign/mapEditor/MapEditorPage'
+import { GameDesignCatalog } from '../gameDesign/GameDesignCatalog'
 
 interface Props {
   active: SidebarSections
@@ -21,9 +24,13 @@ interface Props {
   selected: SelectedNode | null
   refreshTree: () => void
   projectId: string
+  activeGameDesignComponent?: GameDesignComponent | null
+  activeGdRecordId?: string | null
+  enabledGdComponents?: GameDesignComponent[]
+  onAddGameDesignComponent?: (c: GameDesignComponent) => void
 }
 
-export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refreshTree, projectId }) => {
+export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refreshTree, projectId, activeGameDesignComponent, activeGdRecordId, enabledGdComponents = [], onAddGameDesignComponent }) => {
   if (active === 'redaction') {
     return (
       <main className="flex-1 p-8 overflow-y-auto">
@@ -102,6 +109,35 @@ export const ProjectMain: FC<Props> = ({ active, charactersView, selected, refre
     return (
       <main className="flex-1 p-8 overflow-y-auto">
         <ChronologyPage projectId={projectId} />
+      </main>
+    )
+  }
+
+  if (active === 'game-design-catalog') {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto">
+        <GameDesignCatalog
+          enabledComponents={enabledGdComponents}
+          onAdd={(c) => onAddGameDesignComponent?.(c)}
+        />
+      </main>
+    )
+  }
+
+  if (active === 'game-design') {
+    if (activeGameDesignComponent === 'map-editor' && activeGdRecordId) {
+      return (
+        <main className="flex-1 p-4 overflow-hidden flex flex-col">
+          <MapEditorPage projectId={projectId} componentRecordId={activeGdRecordId} />
+        </main>
+      )
+    }
+    return (
+      <main className="flex-1 p-8 overflow-y-auto">
+        <DefaultPage
+          title="Game Design"
+          description="Sélectionnez un composant dans la barre latérale, ou ajoutez-en un avec le bouton +."
+        />
       </main>
     )
   }
