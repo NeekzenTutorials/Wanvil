@@ -9,7 +9,9 @@ export type SidebarSections =
   | 'lore-events-tags'
   | 'chronology'
   | 'analytics'
-  | 'settings';
+  | 'settings'
+  | 'game-design'
+  | 'game-design-catalog';
 
 // sous-vue pour Personnages
 export type CharactersSubView = 'list' | 'template' | 'tags'

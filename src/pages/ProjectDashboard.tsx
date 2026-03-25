@@ -1,14 +1,16 @@
 // src/pages/ProjectDashboard.tsx
 import type { FC, MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent } from 'react'
 import type { Project } from '../types/project'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { apiGet } from '../utils/fetcher'
+import { apiGet, apiPost, apiDelete } from '../utils/fetcher'
 import { ProjectHeader } from '../components/Project/Header'
 import { ProjectMain } from '../components/Project/Main'
 import { ProjectSidebar } from '../components/Project/Sidebar'
 import type { SidebarSections, CharactersSubView } from '../types/sidebarSections'
 import type { SelectedNode } from '../types/selectedNodes'
+import type { GameDesignComponent, GameDesignComponentRecord } from '../types/gameDesign'
+import { ConfirmModal } from '../components/common/ConfirmModal'
 import { Menu, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const MIN_W = 240
@@ -27,6 +29,10 @@ const ProjectDashboard: FC = () => {
 
   const [collapsed, setCollapsed] = useState(false)
   
+  // Game Design state (API-backed)
+  const [gdRecords, setGdRecords] = useState<GameDesignComponentRecord[]>([])
+  const [activeGameDesignComponent, setActiveGameDesignComponent] = useState<GameDesignComponent | null>(null)
+  const [pendingRemove, setPendingRemove] = useState<GameDesignComponent | null>(null)
 
   // largeur sidebar (persistée)
   const [sidebarW, setSidebarW] = useState<number>(() => {
@@ -113,6 +119,47 @@ const ProjectDashboard: FC = () => {
       .catch((err) => console.error('Failed to load project', err))
   }, [projectId])
 
+  // Load game design components from API
+  const loadGdComponents = useCallback(() => {
+    if (!projectId) return
+    apiGet<GameDesignComponentRecord[]>(`projects/${projectId}/game-design`)
+      .then(setGdRecords)
+      .catch(err => console.error('Failed to load GD components', err))
+  }, [projectId])
+
+  useEffect(() => { loadGdComponents() }, [loadGdComponents])
+
+  const gameDesignComponents = gdRecords.map(r => r.componentType)
+
+  const activeGdRecord = gdRecords.find(r => r.componentType === activeGameDesignComponent) ?? null
+
+  const handleAddGameDesignComponent = useCallback((c: GameDesignComponent) => {
+    if (!projectId) return
+    apiPost<GameDesignComponentRecord>(`projects/${projectId}/game-design`, { componentType: c })
+      .then(record => {
+        setGdRecords(prev => [...prev, record])
+        setActiveGameDesignComponent(c)
+        setActiveSection('game-design')
+      })
+      .catch(err => console.error('Failed to add GD component', err))
+  }, [projectId])
+
+  const handleConfirmRemove = useCallback(() => {
+    if (!projectId || !pendingRemove) return
+    const rec = gdRecords.find(r => r.componentType === pendingRemove)
+    if (!rec) { setPendingRemove(null); return }
+    apiDelete(`projects/${projectId}/game-design/${rec.id}`)
+      .then(() => {
+        setGdRecords(prev => prev.filter(r => r.id !== rec.id))
+        if (activeGameDesignComponent === pendingRemove) {
+          setActiveGameDesignComponent(null)
+          setActiveSection('redaction')
+        }
+        setPendingRemove(null)
+      })
+      .catch(err => { console.error('Failed to remove GD component', err); setPendingRemove(null) })
+  }, [projectId, pendingRemove, gdRecords, activeGameDesignComponent])
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
       <ProjectHeader projectName={project?.name ?? projectId ?? ''} />
@@ -151,6 +198,11 @@ const ProjectDashboard: FC = () => {
           }}
           onRefreshTree={setRefreshTree}
           onCloseMobile={() => setMobileOpen(false)}
+          gameDesignComponents={gameDesignComponents}
+          onShowCatalog={() => setActiveSection('game-design-catalog')}
+          onRemoveGameDesignComponent={(c) => setPendingRemove(c)}
+          onSelectGameDesignComponent={setActiveGameDesignComponent}
+          activeGameDesignComponent={activeGameDesignComponent}
           /* Partie mobile : position fixe + translate (inchangée) */
           className={[
             'fixed inset-y-0 left-0 z-50 transform transition-transform md:hidden',
@@ -175,6 +227,11 @@ const ProjectDashboard: FC = () => {
               setCharactersView={setCharactersView}
               onSelectNode={(node) => { setSelectedNode(node); setActiveSection('redaction') }}
               onRefreshTree={setRefreshTree}
+              gameDesignComponents={gameDesignComponents}
+              onShowCatalog={() => setActiveSection('game-design-catalog')}
+              onRemoveGameDesignComponent={(c) => setPendingRemove(c)}
+              onSelectGameDesignComponent={setActiveGameDesignComponent}
+              activeGameDesignComponent={activeGameDesignComponent}
               /* glisse le contenu quand on plie */
               className="h-full"
               style={{
@@ -229,8 +286,22 @@ const ProjectDashboard: FC = () => {
           selected={selectedNode}
           refreshTree={refreshTree}
           projectId={projectId || ''}
+          activeGameDesignComponent={activeGameDesignComponent}
+          activeGdRecordId={activeGdRecord?.id ?? null}
+          enabledGdComponents={gameDesignComponents}
+          onAddGameDesignComponent={handleAddGameDesignComponent}
         />
       </div>
+
+      {/* Confirm delete modal for GD components */}
+      <ConfirmModal
+        open={pendingRemove !== null}
+        title="Supprimer ce composant ?"
+        message="Toutes les données associées (cartes, salles, autocollants…) seront définitivement supprimées. Cette action est irréversible."
+        confirmLabel="Supprimer"
+        onConfirm={handleConfirmRemove}
+        onCancel={() => setPendingRemove(null)}
+      />
     </div>
   )
 }
